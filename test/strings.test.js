@@ -1,7 +1,7 @@
-import assert from 'assert';
-import * as strings from '../src/js/strings';
-import {parseCode} from '../src/js/code-analyzer';
-
+// import assert from 'assert';
+// import * as strings from '../src/js/strings';
+// import {parseCode} from '../src/js/code-analyzer';
+//
 // describe('Testing string representation functions', () => {
 //     it('Identifier 1:', () => {
 //         var program = parseCode('a');
@@ -181,7 +181,7 @@ import {parseCode} from '../src/js/code-analyzer';
 //         );
 //     });
 // });
-
+//
 // describe('Testing string representation functions', () => {
 //     it('ThisExpression:', () => {
 //         var program = parseCode('this');
@@ -191,7 +191,7 @@ import {parseCode} from '../src/js/code-analyzer';
 //         );
 //     });
 // });
-
+//
 // describe('Testing string representation functions', () => {
 //     it('ArrayExpression:', () => {
 //         var program = parseCode('[1,2,3]');
@@ -210,7 +210,7 @@ import {parseCode} from '../src/js/code-analyzer';
 //         );
 //     });
 // });
-
+//
 // describe('Testing string representation functions', () => {
 //     it('ArrowFunctionExpression:', () => {
 //         var program = parseCode('(x, y) => x * y');
@@ -239,13 +239,13 @@ import {parseCode} from '../src/js/code-analyzer';
 //         );
 //     });
 // });
-
-describe('Testing string representation functions', () => {
-    it('ConditionalExpression:', () => {
-        var program = parseCode('x % 2 ? "odd" : "even"');
-        assert.equal(
-            JSON.stringify(strings.findStringRepresentation(program.body[0].expression)),
-            '"x%2 ? odd : even"'
-        );
-    });
-});
+//
+// describe('Testing string representation functions', () => {
+//     it('ConditionalExpression:', () => {
+//         var program = parseCode('x % 2 ? "odd" : "even"');
+//         assert.equal(
+//             JSON.stringify(strings.findStringRepresentation(program.body[0].expression)),
+//             '"x%2 ? odd : even"'
+//         );
+//     });
+// });

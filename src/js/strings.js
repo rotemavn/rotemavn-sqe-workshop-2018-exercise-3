@@ -150,7 +150,7 @@ function sConditionalExpression(expr){
 
 function findStringRepresentation(expr){
     try {
-        console.log('expr.type =' + expr.type);
+        // console.log('expr.type =' + expr.type);
         var type = expr.type;
         return getStringsFunctions[type](expr);
     }

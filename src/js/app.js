@@ -20,13 +20,36 @@ var getValuesFunctions = {'Identifier': valsIdentifier,
     'ForStatement': valsForStatement,
     'MemberExpression': valsMemberExpression,
     'UnaryExpression': valsUnaryExpression,
+    'UpdateExpression': valsUpdateExpression,
+    'LogicalExpression': valsLogicalExpression,
+    'CallExpression': valsCallExpression,
+    'ThisExpression': valsThisExpression,
+    'ArrayExpression': valsArrayExpression,
+    'SequenceExpression': valsSequenceExpression,
+    'ArrowFunctionExpression': valsArrowFunctionExpression,
+    'NewExpression': valsNewExpression,
+    'ConditionalExpression': valsConditionalExpression
 };
+var expressions = [];
+
+
+
+function createExpressionObject(values){
+    var expression = new Object();
+    expression.line = values[0];
+    expression.type = values[1];
+    expression.name = values[2];
+    expression.condition = values[3];
+    expression.value = values[4];
+    expressions.push(expression);
+}
 
 
 
 // The function takes an array of table values.
 // The function creates a new row at the result table and sets the values.
 function createNewRow(values){
+    createExpressionObject(values);
     const row = resTable.insertRow(rowCounter);
     rowCounter++;
     let i;
@@ -114,12 +137,66 @@ function valsUnaryExpression(expr, values){
 }
 
 function valsForStatement(expr, values){
-    values[1] = 'For statement'; //TODO: Complete the parsing of for itself
+    values[1] = 'For statement';
+    values[3] = findStringRepresentation(expr);
     createNewRow(values);
     getValues(expr.body);
 
 }
 
+function valsUpdateExpression(expr, values){
+    values[1] = 'Update expression';
+    values[4] = findStringRepresentation(expr);
+    createNewRow(values);
+}
+
+function valsLogicalExpression(expr, values){
+    values[1] = 'Logical expression';
+    values[4] = findStringRepresentation(expr);
+    createNewRow(values);
+}
+
+function valsCallExpression(exprs, values){
+    values[1] = 'Call expression';
+    values[4] = findStringRepresentation(exprs);
+    createNewRow(values);
+}
+
+function valsThisExpression(exprs, values){
+    values[1] = 'This expression';
+    values[2] = findStringRepresentation(exprs);
+    createNewRow(values);
+}
+
+function valsArrayExpression(exprs, values){
+    values[1] = 'Array expression';
+    values[4] = findStringRepresentation(exprs);
+    createNewRow(values);
+}
+
+function valsSequenceExpression(exprs, values){
+    values[1] = 'Sequence expression';
+    values[4] = findStringRepresentation(exprs);
+    createNewRow(values);
+}
+
+function valsArrowFunctionExpression(exprs, values){
+    values[1] = 'Arrow Function expression';
+    values[4] = findStringRepresentation(exprs);
+    createNewRow(values);
+}
+
+function valsNewExpression(exprs, values){
+    values[1] = 'New expression';
+    values[4] = findStringRepresentation(exprs);
+    createNewRow(values);
+}
+
+function valsConditionalExpression(exprs, values){
+    values[1] = 'Conditional expression';
+    values[3] = findStringRepresentation(exprs);
+    createNewRow(values);
+}
 function getValues(expr){
     if(expr != null) {
         if (expr.constructor === Array){
@@ -155,7 +232,7 @@ $(document).ready(function () {
         deleteAllLines();
         let codeToParse = $('#codePlaceholder').val();
         let parsedCode = parseCode(codeToParse);
-        $('#parsedCode').val(JSON.stringify(parsedCode, null, 1));
+        $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
 
         var body = parsedCode.body;
         body.forEach(getValues);

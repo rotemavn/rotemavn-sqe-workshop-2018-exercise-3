@@ -1,20 +1,34 @@
 import $ from 'jquery';
 import {parseCode} from './code-analyzer';
-import {getValues} from './ast-handler';
+import {getExpressions, getValues} from './ast-handler';
+
+debugger;
+
+
 
 var rowCounter = 1;
 let resTable = document.getElementById('resTable');
 
-// The function takes an array of table values.
-// The function creates a new row at the result table and sets the values.
-function createNewRow(values){
+
+function createRow(exprObj){
     const row = resTable.insertRow(rowCounter);
     rowCounter++;
-    let i;
-    for(i=0; i<5; i++){
-        const cell = row.insertCell(i);
-        cell.textContent = values[i];
+    var index = 0;
+    for(var key in exprObj){
+        const cell = row.insertCell(index);
+        index++;
+        cell.textContent = exprObj[key];
     }
+    // const cell0 = row.insertCell(0);
+    // cell0.textContent = exprObj.line;
+    // const cell1 = row.insertCell(1);
+    // cell1.textContent = exprObj.type;
+    // const cell2 = row.insertCell(2);
+    // cell2.textContent = exprObj.name;
+    // const cell3 = row.insertCell(3);
+    // cell3.textContent = exprObj.condition;
+    // const cell4 = row.insertCell(4);
+    // cell4.textContent = exprObj.value;
 }
 
 
@@ -42,9 +56,7 @@ $(document).ready(function () {
 
         var body = parsedCode.body;
         body.forEach(getValues);
-
-
+        var expressions = getExpressions();
+        expressions.forEach(createRow);
     });
 });
-
-export {createNewRow};

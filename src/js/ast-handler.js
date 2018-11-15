@@ -1,7 +1,4 @@
 import {findStringRepresentation} from './strings';
-import {createNewRow} from './app';
-debugger;
-
 
 var getValuesFunctions = {'Identifier': valsIdentifier,
     'VariableDeclaration': valsVariableDeclaration,
@@ -53,7 +50,7 @@ function createExpressionObject(values){
 function valsIdentifier(expr, values){
     values[2] = expr.name;
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsVariableDeclaration(expr, values){// eslint-disable-line no-unused-vars
@@ -66,27 +63,28 @@ function valsVariableDeclarator(expr, values){
     values[2] = expr.id.name;
     values[4] = findStringRepresentation(expr.init);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 
 function valsExpressionStatement(expr, values){// eslint-disable-line no-unused-vars
     var ex = expr.expression;
-    createExpressionObject(values);
+    // createExpressionObject(values);
     getValues(ex);
 }
 
 function valsReturnStatement(expr, values){
     values[1] = 'Return statement';
     values[4] = findStringRepresentation(expr);
-    createNewRow(values);
+    createExpressionObject(values);
+    
 }
 
 function valsFunctionDeclaration(expr, values){
     values[1] = 'Function declaration';
     values[2] = expr.id.name;
     createExpressionObject(values);
-    createNewRow(values);
+    
 
     var params = expr.params;
     getValues(params);
@@ -102,46 +100,46 @@ function valsAssignmentExpression(expr, values){
     values[2] = findStringRepresentation(expr.left);
     values[4] = findStringRepresentation(expr.right);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 function valsLiteral(expr, values){
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 function valsBinaryExpression(expr, values){
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 function valsWhileStatement(expr, values){
     values[1] = 'While statement';
     values[3] = findStringRepresentation(expr);
     createExpressionObject(values);
-    createNewRow(values);
+    
     getValues(expr.body);
 }
 function valsIfStatement(expr, values){
     values[1] = 'If statement';
     values[3] = findStringRepresentation(expr);
     createExpressionObject(values);
-    createNewRow(values);
+    
     getValues(expr.consequent);
     getValues(expr.alternate);
 }
 function valsMemberExpression(expr, values){
     values[2] = findStringRepresentation(expr);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 function valsUnaryExpression(expr, values){
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsForStatement(expr, values){
     values[1] = 'For statement';
     values[3] = findStringRepresentation(expr);
     createExpressionObject(values);
-    createNewRow(values);
+    
     getValues(expr.body);
 
 }
@@ -150,63 +148,63 @@ function valsUpdateExpression(expr, values){
     values[1] = 'Update expression';
     values[4] = findStringRepresentation(expr);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsLogicalExpression(expr, values){
     values[1] = 'Logical expression';
     values[4] = findStringRepresentation(expr);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsCallExpression(exprs, values){
     values[1] = 'Call expression';
     values[4] = findStringRepresentation(exprs);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsThisExpression(exprs, values){
     values[1] = 'This expression';
     values[2] = findStringRepresentation(exprs);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsArrayExpression(exprs, values){
     values[1] = 'Array expression';
     values[4] = findStringRepresentation(exprs);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsSequenceExpression(exprs, values){
     values[1] = 'Sequence expression';
     values[4] = findStringRepresentation(exprs);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsArrowFunctionExpression(exprs, values){
     values[1] = 'Arrow Function expression';
     values[4] = findStringRepresentation(exprs);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsNewExpression(exprs, values){
     values[1] = 'New expression';
     values[4] = findStringRepresentation(exprs);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 
 function valsConditionalExpression(exprs, values){
     values[1] = 'Conditional expression';
     values[3] = findStringRepresentation(exprs);
     createExpressionObject(values);
-    createNewRow(values);
+    
 }
 function getValues(expr){
     if(expr != null) {

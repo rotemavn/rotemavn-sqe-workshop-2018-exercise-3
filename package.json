@@ -28,6 +28,7 @@
         "@types/jquery": "^3.3.22",
         "cross-env": "^5.2.0",
         "eslint": "^5.0.1",
+        "gulp-mocha-phantomjs": "^0.12.2",
         "istanbul-instrumenter-loader": "^3.0.1",
         "mocha": "^5.2.0",
         "mocha-webpack": "^2.0.0-beta.0",

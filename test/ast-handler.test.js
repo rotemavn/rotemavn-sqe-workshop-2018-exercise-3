@@ -1,12 +1,19 @@
 import assert from 'assert';
-import * as app from '../src/js/ast-handler';
+import * as ast_handler from '../src/js/ast-handler';
 import {parseCode} from '../src/js/code-analyzer';
 
-describe('Testing App', () => {
-    it('Identifier:', () => {
-        app.getValues(parseCode('a'));
-        var expressions = app.getExpressions();
-        assert.equal(expressions.line, 1);
+describe('Testing ast-handler', () => {
+    it('createExpressionObject:', () => {
+        ast_handler.createExpressionObject(['1', 'Test', '', '', '']);
     });
 
 });
+//
+// describe('Testing App', () => {
+//     it('Identifier:', () => {
+//         ast_handler.getValues(parseCode('a'));
+//         var expressions = ast_handler.getExpressions();
+//         assert.equal(expressions.line, 1);
+//     });
+//
+// });

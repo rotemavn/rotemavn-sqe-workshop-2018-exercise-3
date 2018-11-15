@@ -32,6 +32,10 @@ var getValuesFunctions = {'Identifier': valsIdentifier,
 
 var expressions = [];
 
+function getExpressions(){
+    return expressions;
+}
+
 function createExpressionObject(values){
     var expression = {
         line: values[0],
@@ -219,3 +223,5 @@ function getValues(expr){
     }
 }
 export {getValues};
+export {getExpressions};
+export {createExpressionObject};

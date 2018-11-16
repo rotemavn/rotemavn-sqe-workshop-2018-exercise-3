@@ -137,7 +137,7 @@ function sArrowFunctionExpression(expr){
         params += findStringRepresentation(expr.params[i]) + ', ';
     }
     params += findStringRepresentation(expr.params[i]);
-    return findStringRepresentation(expr.id) + '(' + params + ') => ' + findStringRepresentation(expr.body);
+    return findStringRepresentation(expr.id) + '(' + params + ') => {' + findStringRepresentation(expr.body)+'}';
 }
 
 function sNewExpression(expr){

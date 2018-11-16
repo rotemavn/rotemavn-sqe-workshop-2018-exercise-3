@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import {parseCode} from './code-analyzer';
-import {getExpressions, getValues} from './ast-handler';
+import {getExpressions, getValues, restartExpressions} from './ast-handler';
 
 debugger;
 
@@ -58,5 +58,6 @@ $(document).ready(function () {
         body.forEach(getValues);
         var expressions = getExpressions();
         expressions.forEach(createRow);
+        restartExpressions();
     });
 });

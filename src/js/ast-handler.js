@@ -29,9 +29,15 @@ var getValuesFunctions = {'Identifier': valsIdentifier,
 
 var expressions = [];
 
+
 function getExpressions(){
     return expressions;
 }
+
+function restartExpressions() {
+    expressions = [];
+}
+
 
 function createExpressionObject(values){
     var expression = {
@@ -69,7 +75,6 @@ function valsVariableDeclarator(expr, values){
 
 function valsExpressionStatement(expr, values){// eslint-disable-line no-unused-vars
     var ex = expr.expression;
-    // createExpressionObject(values);
     getValues(ex);
 }
 
@@ -103,10 +108,13 @@ function valsAssignmentExpression(expr, values){
     
 }
 function valsLiteral(expr, values){
+    values[4] = expr.value;
     createExpressionObject(values);
     
 }
 function valsBinaryExpression(expr, values){
+    values[1] = 'Binary expression';
+    values[4] = findStringRepresentation(expr);
     createExpressionObject(values);
     
 }
@@ -126,11 +134,14 @@ function valsIfStatement(expr, values){
     getValues(expr.alternate);
 }
 function valsMemberExpression(expr, values){
+    values[1] = 'Member expression';
     values[2] = findStringRepresentation(expr);
     createExpressionObject(values);
     
 }
 function valsUnaryExpression(expr, values){
+    values[1] = 'Unary expression';
+    values[4] = findStringRepresentation(expr);
     createExpressionObject(values);
     
 }
@@ -223,3 +234,4 @@ function getValues(expr){
 export {getValues};
 export {getExpressions};
 export {createExpressionObject};
+export {restartExpressions};

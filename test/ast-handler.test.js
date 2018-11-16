@@ -12,7 +12,8 @@ function before(code){
 function compareExpectedToOutput(expected, actual){
     var i;
     for(i=0; i<expected.length; i++) {
-        for (var key in expected[i]) {
+        const keys = Object.keys(expected[i]);
+        for (var key in keys) {
             assert.equal(expected[i][key], actual[i][key]);
         }
     }

@@ -21,6 +21,16 @@ function compareExpectedToOutput(expected, actual){
 
 
 describe('Testing ast-handler', () => {
+    it('null test:', () => {
+        ast_handler.restartExpressions();
+        ast_handler.createExpressionObject(['1', 'Test', '', '', '']);
+        var expected = [{line:'1', type:'Test', name:'', condition:'', value:''}];
+        var actual = ast_handler.getExpressions();
+        compareExpectedToOutput(expected, actual);
+    });
+});
+
+describe('Testing ast-handler', () => {
     it('createExpressionObject:', () => {
         ast_handler.restartExpressions();
         ast_handler.createExpressionObject(['1', 'Test', '', '', '']);
@@ -99,9 +109,47 @@ describe('Testing ast-handler', () => {
 });
 
 describe('Testing ast-handler', () => {
-    it('valsIfStatement:', () => {
+    it('valsIfStatement 1:', () => {
         before('if(x!=0){x--;}');
         var expected = [{line:'1', type:'If statement', name:'', condition:'x!=0', value:''}];
+        var actual = ast_handler.getExpressions();
+        compareExpectedToOutput(expected, actual);
+    });
+});
+
+describe('Testing ast-handler', () => {
+    it('valsIfStatement  - else:', () => {
+        before('if(x!=0){x--;} else {x++;}');
+        var expected = [{line:'1', type:'If statement', name:'', condition:'x!=0', value:''},
+            { line: '1', type: 'Update expression', name: '', condition: '', value: 'x--' },
+            { line: '1', type: 'else statement', name: '', condition: '',value: '' },
+        ];
+        var actual = ast_handler.getExpressions();
+        compareExpectedToOutput(expected, actual);
+    });
+});
+
+describe('Testing ast-handler', () => {
+    it('valsIfStatement  - else if:', () => {
+        before('if(x!=0){x--;} else if(x==0){x++;}');
+        var expected = [{line:'1', type:'If statement', name:'', condition:'x!=0', value:''},
+            { line: '1', type: 'Update expression', name: '', condition: '', value: 'x--' },
+            { line: '1', type: 'else if statement', name: '', condition: 'x==0',value: '' },
+        ];
+        var actual = ast_handler.getExpressions();
+        compareExpectedToOutput(expected, actual);
+    });
+});
+
+describe('Testing ast-handler', () => {
+    it('valsIfStatement  - else if - else:', () => {
+        before('if(x!=0){x--;} else if(x==0){x++;} else{x=x+2;}');
+        var expected = [{line:'1', type:'If statement', name:'', condition:'x!=0', value:''},
+            { line: '1', type: 'Update expression', name: '', condition: '', value: 'x--' },
+            { line: '1', type: 'else if statement', name: '', condition: 'x==0',value: '' },
+            { line: '1', type: 'Update expression', name: '', condition: '', value: 'x++' },
+            { line: '1', type: 'else statement', name: '', condition: '',value: '' },
+        ];
         var actual = ast_handler.getExpressions();
         compareExpectedToOutput(expected, actual);
     });

@@ -125,14 +125,41 @@ function valsWhileStatement(expr, values){
     
     getValues(expr.body);
 }
+
+function handleAlternate(alt){
+    if (alt.type === 'IfStatement') {
+        var elseIfValues = ['', 'else if statement', '', '', ''];
+        valsIfAlternate(alt, elseIfValues);
+    }
+    else {
+        var elseValues = [alt.loc.start.line, 'else statement', '', '', ''];
+        createExpressionObject(elseValues);
+        getValues(alt);
+    }
+}
+
+
 function valsIfStatement(expr, values){
     values[1] = 'If statement';
     values[3] = findStringRepresentation(expr);
     createExpressionObject(values);
     
     getValues(expr.consequent);
-    getValues(expr.alternate);
+    if(expr.alternate != null) {
+        handleAlternate(expr.alternate);
+    }
 }
+
+function valsIfAlternate(expr, values){
+    values[0] = expr.loc.start.line;
+    values[3] = findStringRepresentation(expr);
+    createExpressionObject(values);
+    getValues(expr.consequent);
+    if(expr.alternate != null) {
+        handleAlternate(expr.alternate);
+    }
+}
+
 function valsMemberExpression(expr, values){
     values[1] = 'Member expression';
     values[2] = findStringRepresentation(expr);
@@ -218,17 +245,15 @@ function valsConditionalExpression(exprs, values){
     
 }
 function getValues(expr){
-    if(expr != null) {
-        if (expr.constructor === Array){
-            expr.forEach(getValues);
-        }
-        else {
-            var values = ['', '', '', '', ''];
-            values[0] = expr.loc.start.line;
-            var type = expr.type;
-            values[1] = type;
-            getValuesFunctions[type](expr, values);
-        }
+    if (expr.constructor === Array){
+        expr.forEach(getValues);
+    }
+    else {
+        var values = ['', '', '', '', ''];
+        values[0] = expr.loc.start.line;
+        var type = expr.type;
+        values[1] = type;
+        getValuesFunctions[type](expr, values);
     }
 }
 export {getValues};

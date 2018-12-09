@@ -8,6 +8,7 @@ var startOfFunction = -1;
 var endOfFunction = -1;
 var newExpressions = [];
 var originExpressions;
+var resFunc = {};
 
 
 // function varValuesContains(name){
@@ -145,6 +146,10 @@ function getTextFromVars(){
 }
 
 
+function getResFunc(){
+    return resFunc;
+}
+
 ///////////////////////////////////////////////////////////
 
 function createNewInitVar(ex, paramValues){
@@ -180,7 +185,22 @@ var replaceExpressionsFunctions = {
     'Literal': replaceLiteral,
     'Identifier': replaceIdentifier,
     'ReturnStatement': replaceReturn,
+    'VariableDeclaration': replaceVariableDeclaration,
+    'VariableDeclarator': replaceVariableDeclarator,
+    'WhileStatement': replaceWhileStatement,
+    'ExpressionStatement': replaceExpressionStatement,
+    'AssignmentExpression': replaceAssignmentExpression,
+    'IfStatement': replaceIfStatement,
+    'BlockStatement': replaceBlockStatement,
 };
+
+
+function addToValueVector(res, ex){
+    if(res.name === '' || res.name === undefined)
+        varValuesSet(findStringRepresentation(res), res, ex);
+    else
+        varValuesSet(res.name, res, ex);
+}
 
 function replaceLiteral(ex){
     var realValue = varValuesGet(ex);
@@ -200,35 +220,145 @@ function replaceIdentifier(ex){
         return ex;
     var realValue = varValuesGet(ex);
     if(realValue != null){
-        return {type: 'Identifier', name: findStringRepresentation(realValue)};
+        // return {type: 'Identifier', name: findStringRepresentation(realValue)};
+        return realValue;
     }
     else
         return ex;
 }
 
 function replaceBinaryExpression(ex){
-    var left = replaceExpressionsFunctions[ex.left.type](ex.left);
-    var right = replaceExpressionsFunctions[ex.right.type](ex.right);
-    var op = ex.operator;
-    return {type: 'BinaryExpression', left: left, right:right, operator: op};
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.left = replaceExpressionsFunctions[ex.left.type](ex.left);
+    res.right = replaceExpressionsFunctions[ex.right.type](ex.right);
+    addToValueVector(res, ex);
+
+    return res;
 }
 
 function replaceReturn(ex){
-
-    return  replaceExpressionsFunctions[ex.argument.type](ex.argument);
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.arg = replaceExpressionsFunctions[ex.argument.type](ex.argument);
+    addToValueVector(res, ex);
+    return res;
 }
 
-function replaceExpression(ex){
-    if(ex.valueObj !=null  && ex.valueObj !== ''){
-        var valObj = ex.valueObj;
-        var newValObj = replaceExpressionsFunctions[valObj.type](valObj);
-        if(ex.name === '')
-            ex.name = findStringRepresentation(ex);
-        varValuesSet(ex.name, newValObj, ex);
-        return newValObj;
+function replaceVariableDeclaration(ex){
+    var res =  JSON.parse(JSON.stringify(ex));
+    var i;
+    for(i=0; i<ex.declarations.length; i++){
+        res.declarations[i] = replaceExpressionsFunctions[ex.declarations[i].type](ex.declarations[i]);
     }
+    return res;
+
+}
+
+function replaceVariableDeclarator(ex){
+    var res = JSON.parse(JSON.stringify(ex));
+    res.init = replaceExpressionsFunctions[ex.init.type](ex.init);
+    if(res.id.name === '')
+        varValuesSet(findStringRepresentation(res.id), res.init, ex);
+    else varValuesSet(res.id.name, res.init, ex);
 
 
+    addToValueVector(res, ex);
+    return res;
+}
+
+function replaceWhileStatement(ex){
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.test = replaceExpressionsFunctions[ex.test.type](ex.test);
+    res.body.body = [];
+    var i, body = ex.body.body;
+    for(i=0; i<body.length; i++){
+        var exp = replaceExpressionsFunctions[body[i].type](body[i]);
+        addToValueVector(exp, body[i]);
+        if(checkIfExprIsNecessary(exp))
+            res.body.body.push(exp);
+        // res.body.body.push(exp);
+    }
+    addToValueVector(res, ex);
+    return res;
+
+}
+
+function replaceExpressionStatement(ex){
+    return replaceExpressionsFunctions[ex.expression.type](ex.expression);
+}
+
+function replaceAssignmentExpression(ex){
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.right = replaceExpressionsFunctions[ex.right.type](ex.right);
+    var left = ex.left;
+    if(left.name === '')
+        varValuesSet(findStringRepresentation(left), res.right, ex);
+    else varValuesSet(left.name, res.right, ex);
+    addToValueVector(res, ex);
+    return res;
+}
+
+// function replaceExpression(ex){
+//     if(ex.valueObj !=null  && ex.valueObj !== ''){
+//         var valObj = ex.valueObj;
+//         var newValObj = replaceExpressionsFunctions[valObj.type](valObj);
+//         if(ex.name === '')
+//             ex.name = findStringRepresentation(ex);
+//         varValuesSet(ex.name, newValObj, ex);
+//         return newValObj;
+//     }
+//
+//
+// }
+
+// function replaceExpression(ex){
+//     var newValObj = replaceExpressionsFunctions[ex.type](ex);
+//     // if(ex.name === '')
+//     //     ex.name = findStringRepresentation(ex);
+//     // varValuesSet(ex.name, newValObj, ex);
+//     return newValObj;
+//
+//
+//
+// }
+
+function replaceIfStatement(ex){
+    var res =  JSON.parse(JSON.stringify(ex));
+    if(res.test != undefined)
+        res.test = replaceExpressionsFunctions[ex.test.type](ex.test);
+    res.consequent.body = [];
+    var i, body = ex.consequent.body;
+    for(i=0; i<body.length; i++){
+        var exp = replaceExpressionsFunctions[body[i].type](body[i]);
+        addToValueVector(exp, body[i]);
+        if(checkIfExprIsNecessary(exp))
+            res.consequent.body.push(exp);
+        // res.body.body.push(exp);
+    }
+    res.alternate = replaceExpressionsFunctions[res.alternate.type](res.alternate);
+    addToValueVector(res, ex);
+    return res;
+}
+
+function replaceBlockStatement(ex){
+    var res =  JSON.parse(JSON.stringify(ex));
+    var body = ex.body;
+    res.body = [];
+    var i;
+    for(i=0; i<body.length; i++){
+        var exp = replaceExpressionsFunctions[body[i].type](body[i]);
+        addToValueVector(exp, body[i]);
+        if(checkIfExprIsNecessary(exp))
+            res.body.push(exp);
+    }
+    return res;
+}
+
+function checkIfExprIsNecessary(ex){
+    if(ex.type === 'VariableDeclaration')
+        return false;
+    if(ex.type === 'AssignmentExpression' && inputVectorGet(ex.left)==null)
+        return false;
+    return true;
 }
 
 function substitute(expressions, paramValues){
@@ -238,21 +368,36 @@ function substitute(expressions, paramValues){
     createInputVector(expressions, paramValues);
     var i;
     //
-    // var func = getFuncObj();
-    // var funcBody = func.body.body;
-    // var newFuncBody = [];
-    // for(i=0; i<funcBody.length; i++){
-    //     var oldExpr = funcBody[i];
-    //     var newExpr = replaceExpression(oldExpr);
-    // }
-    //
-
-    for(i=0; i<expressions.length; i++){
-        newExpressions[i] = expressions[i];
-        if(expressions[i].line > startOfFunction && expressions[i].line < endOfFunction){
-            newExpressions.values = replaceExpression(expressions[i]);
-        }
+    var func = getFuncObj();
+    var funcBody = func.body.body;
+    var blockStatement = func.body;
+    var newFuncBody = [];
+    for(i=0; i<funcBody.length; i++){
+        var oldExpr = funcBody[i];
+        // var newExpr = replaceExpression(oldExpr);
+        var newExpr = replaceExpressionsFunctions[oldExpr.type](oldExpr);
+        if(checkIfExprIsNecessary(newExpr))
+            newFuncBody.push(newExpr);
     }
+    blockStatement.body = newFuncBody;
+
+    resFunc = {
+        type: func.type,
+        body: blockStatement,
+        loc: func.loc,
+        expression: func.expression,
+        generator: func.generator,
+        id: func.id,
+        params: func.params
+    };
+
+
+    // for(i=0; i<expressions.length; i++){
+    //     newExpressions[i] = expressions[i];
+    //     if(expressions[i].line > startOfFunction && expressions[i].line < endOfFunction){
+    //         newExpressions.values = replaceExpression(expressions[i]);
+    //     }
+    // }
 
     // //TODO : remove print
     console.log('Var values vector = ');
@@ -268,4 +413,4 @@ function substitute(expressions, paramValues){
 
 ///////////////////////////////////////////////////////////
 
-export {substitute, createParamVector, restart, getVarValues, getTextFromVars};
+export {substitute, createParamVector, restart, getVarValues, getTextFromVars, getResFunc};

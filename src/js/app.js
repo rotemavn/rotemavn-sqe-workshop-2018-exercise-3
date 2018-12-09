@@ -2,7 +2,7 @@ import $ from 'jquery';
 import {parseCode} from './code-analyzer';
 // import {iterateInputCode, createParamVector, getInputVector, getSubstitutedVars} from './substitute-code';
 import {getValues, getExpressions, restartExpressions} from './ast-handler';
-import {substitute, createParamVector, getVarValues, restart, getTextFromVars} from './substitute';
+import {substitute, createParamVector, getVarValues, restart, getTextFromVars, getResFunc} from './substitute';
 import * as escodegen from "escodegen";
 
 
@@ -24,7 +24,7 @@ $(document).ready(function () {
         var params = createParamVector(inputParams);
 
         substitute(expressions, params);
-        var result = getTextFromVars();
+        var result = getResFunc();
         console.log(result);
         // resultArea.val(result);
 

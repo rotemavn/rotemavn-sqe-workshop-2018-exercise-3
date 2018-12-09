@@ -155,6 +155,8 @@ function findStringRepresentation(expr){
         return getStringsFunctions[type](expr);
     }
     catch (e) {
+        if(expr.type === 'ReturnStatement')
+            return expr.value;
         return '';
     }
 }

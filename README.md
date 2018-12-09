@@ -52,3 +52,37 @@ Line | Type | Name | Value
 ... | ... | ... | ...
 2 | VariableDeclarator | low | 0
 ... | ... | ... | ...
+
+=========================================================================================================
+
+
+Comments from workshop:
+input 1 - function to perform substitution on
+input 2 - input to substituted function
+
+
+- don't forget that there can be global vars before function
+- input vector includes also const and global variables
+- first thing - put input through esprima.
+- build data structure from parsed input. save separate local and globals
+....
+- perform substitution
+- check conditions (on input 2)
+- render output
+- output should include the global variables before the function
+
+example:
+
+input:
+const z = 5;
+foo(x,y){
+    let a = x + z;
+    return a
+}
+
+output can be either:
+    return x + z
+    return x + 5
+
+
+

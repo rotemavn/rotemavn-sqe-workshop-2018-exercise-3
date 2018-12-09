@@ -6,22 +6,8 @@ var inputVector = [];
 var varValues = [];
 var startOfFunction = -1;
 var endOfFunction = -1;
-var newExpressions = [];
 var originExpressions;
 var resFunc = {};
-
-
-// function varValuesContains(name){
-//     var i;
-//     for(i=0; i<varValues.length; i++) {
-//         if(varValues[i].name === name)
-//             return varValues[i].value;
-//     }
-//     return null;
-//
-// }
-
-
 
 
 /// Utils
@@ -97,54 +83,6 @@ function getFuncObj(){
         }
     }
 }
-
-
-function getTextFromVars(){
-    var f = getFuncObj();
-    var oldBody = f.body;
-    oldBody.body = [oldBody.body[0]];
-    var newBody = oldBody;
-    var newID = f.id;
-    newID.name = 'rotem';
-    var newFunction = {
-        type: f.type,
-        body: newBody,
-        loc: f.loc,
-        expression: f.expression,
-        generator: f.generator,
-        id: newID,
-        params: f.params
-    };
-
-
-    //async: false
-    // body: BlockStatement {type: "BlockStatement", body: Array(5), loc: {…}}
-    // expression: false
-    // generator: false
-    // id: Identifier {type: "Identifier", name: "foo", loc: {…}}
-    // loc: {start: {…}, end: {…}}
-    // params: (3) [Identifier, Identifier, Identifier]
-    // type: "FunctionDeclaration"
-
-
-    // var i, result = '';
-    // for(i=0; i<newExpressions.length; i++){
-    //     result += escodegen.generate(newExpressions[i]);
-    //     result += '\n';
-    //
-    // }
-
-    // return result;
-    return newFunction;
-    // return escodegen.generate(newFunction, {
-    //     format: {
-    //         preserveBlankLines: true
-    //     },
-    //     sourceCode: code
-    // });
-
-}
-
 
 function getResFunc(){
     return resFunc;
@@ -297,33 +235,10 @@ function replaceAssignmentExpression(ex){
     return res;
 }
 
-// function replaceExpression(ex){
-//     if(ex.valueObj !=null  && ex.valueObj !== ''){
-//         var valObj = ex.valueObj;
-//         var newValObj = replaceExpressionsFunctions[valObj.type](valObj);
-//         if(ex.name === '')
-//             ex.name = findStringRepresentation(ex);
-//         varValuesSet(ex.name, newValObj, ex);
-//         return newValObj;
-//     }
-//
-//
-// }
-
-// function replaceExpression(ex){
-//     var newValObj = replaceExpressionsFunctions[ex.type](ex);
-//     // if(ex.name === '')
-//     //     ex.name = findStringRepresentation(ex);
-//     // varValuesSet(ex.name, newValObj, ex);
-//     return newValObj;
-//
-//
-//
-// }
 
 function replaceIfStatement(ex){
     var res =  JSON.parse(JSON.stringify(ex));
-    if(res.test != undefined)
+    if(res.test !== undefined)
         res.test = replaceExpressionsFunctions[ex.test.type](ex.test);
     res.consequent.body = [];
     var i, body = ex.consequent.body;
@@ -356,9 +271,8 @@ function replaceBlockStatement(ex){
 function checkIfExprIsNecessary(ex){
     if(ex.type === 'VariableDeclaration')
         return false;
-    if(ex.type === 'AssignmentExpression' && inputVectorGet(ex.left)==null)
-        return false;
-    return true;
+    return !(ex.type === 'AssignmentExpression' && inputVectorGet(ex.left) == null);
+
 }
 
 function substitute(expressions, paramValues){
@@ -366,51 +280,27 @@ function substitute(expressions, paramValues){
     originExpressions = expressions;
     findFunctionStartAndEnd(expressions);
     createInputVector(expressions, paramValues);
-    var i;
-    //
-    var func = getFuncObj();
+    var i, func = getFuncObj();
     var funcBody = func.body.body;
     var blockStatement = func.body;
     var newFuncBody = [];
     for(i=0; i<funcBody.length; i++){
         var oldExpr = funcBody[i];
-        // var newExpr = replaceExpression(oldExpr);
         var newExpr = replaceExpressionsFunctions[oldExpr.type](oldExpr);
         if(checkIfExprIsNecessary(newExpr))
             newFuncBody.push(newExpr);
     }
     blockStatement.body = newFuncBody;
 
-    resFunc = {
-        type: func.type,
-        body: blockStatement,
-        loc: func.loc,
-        expression: func.expression,
-        generator: func.generator,
-        id: func.id,
-        params: func.params
-    };
-
-
-    // for(i=0; i<expressions.length; i++){
-    //     newExpressions[i] = expressions[i];
-    //     if(expressions[i].line > startOfFunction && expressions[i].line < endOfFunction){
-    //         newExpressions.values = replaceExpression(expressions[i]);
-    //     }
-    // }
+    resFunc = {type: func.type, body: blockStatement, loc: func.loc, expression: func.expression,
+        generator: func.generator, id: func.id, params: func.params};
 
     // //TODO : remove print
     console.log('Var values vector = ');
     for(i=0; i<varValues.length; i++)
         console.log(varValues[i]);
-
-    // return newExpressions;
-
-
-
-
 }
 
 ///////////////////////////////////////////////////////////
 
-export {substitute, createParamVector, restart, getVarValues, getTextFromVars, getResFunc};
+export {substitute, createParamVector, restart, getVarValues, getResFunc};

@@ -17,46 +17,35 @@ function before(code, inputParams){
 const nonRelevantKeys = ['range', 'loc', '0', '1', 'line', 'start', 'end', 'col'];
 
 
+function compareObjectsNotArray(expected, actual, key){
+    if(!nonRelevantKeys.includes(key)){
+        expected = expected[key];
+        actual = actual[key];
+        compare(expected, actual);
+    }
+}
+
+
 function compareObjects(expected, actual){
-    console.log('#######################');
-    console.log('lengths = ' + expected.length);
-    var i, j, key, ex, ac;
+    var i, j, key;
     if(expected.length !== undefined){
         for(i=0; i<expected.length; i++){
             const keys = Object.keys(expected[i]);
             for(j=0; j<keys.length; j++){
                 key = keys[j];
-                if(!nonRelevantKeys.includes(key)){
-                    console.log('key: '+ key);
-                    ex = expected[i][key];
-                    ac = actual[i][key];
-                    compare(ex, ac);
-                }
-
-            }
-        }
-    }
+                compareObjectsNotArray(expected[i], actual[i], key);
+            }}}
     else {
         const keys = Object.keys(actual);
         for (j = 0; j < keys.length; j++) {
             key = keys[j];
-            if (!nonRelevantKeys.includes(key)) {
-                console.log('key: ' + key);
-                ex = expected[key];
-                ac = actual[key];
-                compare(ex, ac);
-            }
-
-        }
-    }
-
-    console.log('#DONE');
+            compareObjectsNotArray(expected, actual, key);
+        }}
 }
 
 function compare(expected, actual){
-    console.log('$$$ comparing :: expected = ' + expected + ' VS. actual = ' + actual);
     try {
-        if(expected == null && actual == null) {
+        if(expected == null) {
             assert.equal(true, true);
         }
         else if (typeof(expected) === 'object' && typeof(actual) === 'object')
@@ -65,24 +54,13 @@ function compare(expected, actual){
             assert.equal(expected, actual);
     }
     catch (e) {
-        console.log('actual');
-        console.log(actual);
-        console.log('expected');
-        console.log(expected);
         assert.fail('One of compared object is undefined');
-        console.log(e);
-
     }
 
 }
 
 
 function compareExpectedToOutput(expected, actual){
-    console.log('expected = ');
-    console.log(expected);
-    console.log('actual = ');
-    console.log(actual);
-
     var i;
     for(i=0; i<expected.length; i++) {
         const keys = Object.keys(expected[i]);

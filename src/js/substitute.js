@@ -1,6 +1,5 @@
 import {parseCode} from './code-analyzer';
 import {findStringRepresentation} from './strings';
-import * as escodegen from 'escodegen';
 
 var inputVector = [];
 var varValues = [];
@@ -141,20 +140,10 @@ var replaceExpressionsFunctions = {
 
 
 function replaceLiteral(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceLiteral @@@@@@@@@@@@@@@@ ');
-    // var realValue = varValuesGet(ex);
-    // if(realValue != null){
-    //     return escodegen.generate({
-    //         type: 'Literal',
-    //         value: realValue,
-    //     });
-    // }
-    // else
     return ex;
 }
 
 function replaceIdentifier(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceIdentifier @@@@@@@@@@@@@@@@ ');
     var initIdentifier = inputVectorGet(ex);
     if(initIdentifier != null)
         return ex;
@@ -167,7 +156,6 @@ function replaceIdentifier(ex){
 }
 
 function replaceBinaryExpression(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceBinaryExpression @@@@@@@@@@@@@@@@ ');
     var res =  JSON.parse(JSON.stringify(ex));
     res.left = replaceExpressionsFunctions[ex.left.type](ex.left);
     res.right = replaceExpressionsFunctions[ex.right.type](ex.right);
@@ -177,16 +165,13 @@ function replaceBinaryExpression(ex){
 }
 
 function replaceReturn(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceReturn @@@@@@@@@@@@@@@@ ');
     var res =  JSON.parse(JSON.stringify(ex));
     res.argument = replaceExpressionsFunctions[ex.argument.type](ex.argument);
-    // res.argument = res.arg;
     addToValueVector(res, ex);
     return res;
 }
 
 function replaceVariableDeclaration(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceVariableDeclaration @@@@@@@@@@@@@@@@ ');
     var res =  JSON.parse(JSON.stringify(ex));
     var i;
     for(i=0; i<ex.declarations.length; i++){
@@ -197,12 +182,8 @@ function replaceVariableDeclaration(ex){
 }
 
 function replaceVariableDeclarator(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceVariableDeclarator @@@@@@@@@@@@@@@@ ');
     var res = JSON.parse(JSON.stringify(ex));
     res.init = replaceExpressionsFunctions[ex.init.type](ex.init);
-    // if(res.id.name === '')
-    //     varValuesSet(findStringRepresentation(res.id), res.init, ex);
-    // else varValuesSet(res.id.name, res.init, ex);
     varValuesSet(findStringRepresentation(res.id), res.init, ex);
 
 
@@ -211,7 +192,6 @@ function replaceVariableDeclarator(ex){
 }
 
 function replaceWhileStatement(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceWhileStatement @@@@@@@@@@@@@@@@ ');
     var res =  JSON.parse(JSON.stringify(ex));
     res.test = replaceExpressionsFunctions[ex.test.type](ex.test);
     res.body.body = [];
@@ -221,7 +201,6 @@ function replaceWhileStatement(ex){
         addToValueVector(exp, body[i]);
         if(checkIfExprIsNecessary(exp))
             res.body.body.push(exp);
-        // res.body.body.push(exp);
     }
     addToValueVector(res, ex);
     return res;
@@ -229,14 +208,12 @@ function replaceWhileStatement(ex){
 }
 
 function replaceExpressionStatement(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceExpressionStatement @@@@@@@@@@@@@@@@ ');
     var res =  JSON.parse(JSON.stringify(ex));
     res.expression = replaceExpressionsFunctions[ex.expression.type](ex.expression);
     return res;
 }
 
 function replaceAssignmentExpression(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceAssignmentExpression @@@@@@@@@@@@@@@@ ');
     var res =  JSON.parse(JSON.stringify(ex));
     res.right = replaceExpressionsFunctions[ex.right.type](ex.right);
     var left = ex.left;
@@ -245,30 +222,8 @@ function replaceAssignmentExpression(ex){
     return res;
 }
 
-
-// function replaceIfStatement(ex){
-//
-//     var res =  JSON.parse(JSON.stringify(ex));
-//     if(res.test !== undefined)
-//         res.test = replaceExpressionsFunctions[ex.test.type](ex.test);
-//     res.consequent.body = [];
-//     var i, body = ex.consequent.body;
-//     for(i=0; i<body.length; i++){
-//         var exp = replaceExpressionsFunctions[body[i].type](body[i]);
-//         addToValueVector(exp, body[i]);
-//         if(checkIfExprIsNecessary(exp))
-//             res.consequent.body.push(exp);
-//     }
-//     if(res.alternate != null)
-//         res.alternate = replaceExpressionsFunctions[res.alternate.type](res.alternate);
-//     addToValueVector(res, ex);
-//     return res;
-// }
-
 function replaceIfStatement(ex){
-
     var res =  JSON.parse(JSON.stringify(ex));
-    // if(res.test !== undefined)
     res.test = replaceExpressionsFunctions[ex.test.type](ex.test);
     res.consequent.body = [];
     var i, body = ex.consequent.body;
@@ -285,7 +240,6 @@ function replaceIfStatement(ex){
 }
 
 function replaceBlockStatement(ex){
-    console.log('@@@@@@@@@@@@@@@@ replaceBlockStatement @@@@@@@@@@@@@@@@ ');
     var res =  JSON.parse(JSON.stringify(ex));
     var body = ex.body;
     res.body = [];
@@ -310,7 +264,6 @@ function checkIfExprIsNecessary(ex){
 }
 
 function substitute(expressions, paramValues){
-    // console.log(expressions);
     originExpressions = expressions;
     findFunctionStartAndEnd(expressions);
     createInputVector(expressions, paramValues);
@@ -328,11 +281,6 @@ function substitute(expressions, paramValues){
 
     resFunc = {type: func.type, body: blockStatement, loc: func.loc, expression: func.expression,
         generator: func.generator, id: func.id, params: func.params, async: func.async, range: func.range};
-
-    // //TODO : remove print
-    // console.log('Var values vector = ');
-    // for(i=0; i<varValues.length; i++)
-    //     console.log(varValues[i]);
 }
 
 ///////////////////////////////////////////////////////////

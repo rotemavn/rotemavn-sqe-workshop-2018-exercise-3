@@ -71,15 +71,12 @@ function restart(){
     varValues = [];
 }
 
-function getVarValues(){
-    return varValues;
-}
 
-function getFuncObj(){
+function getFuncObj(expressions){
     var i;
-    for(i=0; i<originExpressions.length; i++){
-        if(originExpressions[i].type === 'FunctionDeclaration'){
-            return originExpressions[i].valueObj;
+    for(i=0; i<expressions.length; i++){
+        if(expressions[i].type === 'FunctionDeclaration'){
+            return expressions[i].valueObj;
         }
     }
 }
@@ -87,6 +84,14 @@ function getFuncObj(){
 function getResFunc(){
     return resFunc;
 }
+
+function addToValueVector(res, ex){
+    if(res.name === '' || res.name === undefined)
+        varValuesSet(findStringRepresentation(res), res, ex);
+    else
+        varValuesSet(res.name, res, ex);
+}
+
 
 ///////////////////////////////////////////////////////////
 
@@ -133,12 +138,6 @@ var replaceExpressionsFunctions = {
 };
 
 
-function addToValueVector(res, ex){
-    if(res.name === '' || res.name === undefined)
-        varValuesSet(findStringRepresentation(res), res, ex);
-    else
-        varValuesSet(res.name, res, ex);
-}
 
 function replaceLiteral(ex){
     var realValue = varValuesGet(ex);
@@ -158,7 +157,6 @@ function replaceIdentifier(ex){
         return ex;
     var realValue = varValuesGet(ex);
     if(realValue != null){
-        // return {type: 'Identifier', name: findStringRepresentation(realValue)};
         return realValue;
     }
     else
@@ -176,7 +174,8 @@ function replaceBinaryExpression(ex){
 
 function replaceReturn(ex){
     var res =  JSON.parse(JSON.stringify(ex));
-    res.arg = replaceExpressionsFunctions[ex.argument.type](ex.argument);
+    res.argument = replaceExpressionsFunctions[ex.argument.type](ex.argument);
+    // res.argument = res.arg;
     addToValueVector(res, ex);
     return res;
 }
@@ -276,11 +275,11 @@ function checkIfExprIsNecessary(ex){
 }
 
 function substitute(expressions, paramValues){
-    console.log(expressions);
+    // console.log(expressions);
     originExpressions = expressions;
     findFunctionStartAndEnd(expressions);
     createInputVector(expressions, paramValues);
-    var i, func = getFuncObj();
+    var i, func = getFuncObj(originExpressions);
     var funcBody = func.body.body;
     var blockStatement = func.body;
     var newFuncBody = [];
@@ -296,11 +295,11 @@ function substitute(expressions, paramValues){
         generator: func.generator, id: func.id, params: func.params};
 
     // //TODO : remove print
-    console.log('Var values vector = ');
-    for(i=0; i<varValues.length; i++)
-        console.log(varValues[i]);
+    // console.log('Var values vector = ');
+    // for(i=0; i<varValues.length; i++)
+    //     console.log(varValues[i]);
 }
 
 ///////////////////////////////////////////////////////////
 
-export {substitute, createParamVector, restart, getVarValues, getResFunc};
+export {substitute, createParamVector, restart, getResFunc, getFuncObj};

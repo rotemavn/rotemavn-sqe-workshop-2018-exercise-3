@@ -1,84 +1,148 @@
-import assert from 'assert';
-import * as ast_handler from '../src/js/ast-handler';
-import * as bl from '../src/js/substitute';
-import {parseCode} from '../src/js/code-analyzer';
-
-
-function before(code, inputParams){
-    bl.restart();
-    ast_handler.restartExpressions();
-    var parsedCode = parseCode(code).body;
-    var body = parsedCode.body;
-    body.forEach(ast_handler.getValues);
-    var expressions = ast_handler.getExpressions();
-    var params = bl.createParamVector(inputParams);
-    bl.substitute(expressions, params);
-}
-
-function compareExpectedToOutput(expected, actual){
-    var i;
-    for(i=0; i<expected.length; i++) {
-        const keys = Object.keys(expected[i]);
-        for (var key in keys) {
-            assert.equal(expected[i][key], actual[i][key]);
-        }
-    }
-}
-
-
-describe('Testing ast-handler', () => {
-    it('null test:', () => {
-        ast_handler.restartExpressions();
-        ast_handler.createExpressionObject(['1', 'Test', '', '', '']);
-        var expected = [{line:'1', type:'Test', name:'', condition:'', value:''}];
-        var actual = ast_handler.getExpressions();
-        compareExpectedToOutput(expected, actual);
-        bl.restart();
-    });
-});
-
-describe('Testing ast-handler', () => {
-    it('createExpressionObject:', () => {
-        ast_handler.restartExpressions();
-        ast_handler.createExpressionObject(['1', 'Test', '', '', '']);
-        var expected = [{line:'1', type:'Test', name:'', condition:'', value:''}];
-        var actual = ast_handler.getExpressions();
-        compareExpectedToOutput(expected, actual);
-    });
-});
-
-describe('Testing ast-handler', () => {
-    it('valsIdentifier:', () => {
-        before('a');
-        var expected = [{line:'1', type:'Identifier', name:'a', condition:'', value:''}];
-        var actual = ast_handler.getExpressions();
-        compareExpectedToOutput(expected, actual);
-
-    });
-});
-describe('Testing ast-handler', () => {
-    it('valsReturnStatement:', () => {
-        before('function x(){return 2;}');
-        var expected = [{line:'1', type:'FunctionDeclaration', name:'x', condition:'', value:''},{line:'1', type:'ReturnStatement', name:'', condition:'', value:'2'}];
-        var actual = ast_handler.getExpressions();
-        compareExpectedToOutput(expected, actual);
-    });
-});
-
-describe('Testing ast-handler', () => {
-    it('valsFunctionDeclaration:', () => {
-        before('function x1(){}');
-        var expected = [{line:'1', type:'FunctionDeclaration', name:'x1', condition:'', value:''}];
-        var actual = ast_handler.getExpressions();
-        compareExpectedToOutput(expected, actual);
-    });
-});
-
-describe('Testing ast-handler', () => {
-    it('valsVariableDeclaration:', () => {
-        before('var x=1;');
-        var expected = [{line:'1', type:'VariableDeclaration', name:'x', condition:'', value:'1'}];
-        var actual = ast_handler.getExpressions();
-        compareExpectedToOutput(expected, actual);
-    });
-});
+// import assert from 'assert';
+// import * as ast_handler from '../src/js/ast-handler';
+// import * as bl from '../src/js/substitute';
+// import {parseCode} from '../src/js/code-analyzer';
+//
+//
+// function before(code, inputParams){
+//     bl.restart();
+//     ast_handler.restartExpressions();
+//     var parsedCode = parseCode(code).body;
+//     ast_handler.getValues(parsedCode);
+//     var expressions = ast_handler.getExpressions();
+//     var params = bl.createParamVector(inputParams);
+//     bl.substitute(expressions, params);
+// }
+//
+// const nonRelevantKeys = ['range', 'loc', '0', '1', 'line', 'start', 'end', 'col'];
+//
+//
+// function compareObjects(expected, actual){
+//     console.log('#######################');
+//     console.log('lengths = ' + expected.length);
+//     var i, j, key, ex, ac;
+//     if(expected.length !== undefined){
+//         for(i=0; i<expected.length; i++){
+//             const keys = Object.keys(expected[i]);
+//             for(j=0; j<keys.length; j++){
+//                 key = keys[j];
+//                 if(!nonRelevantKeys.includes(key)){
+//                     console.log('key: '+ key);
+//                     ex = expected[i][key];
+//                     ac = actual[i][key];
+//                     compare(ex, ac);
+//                 }
+//
+//             }
+//         }
+//     }
+//     else {
+//         // compare(expected.type, actual.type);
+//         // compare(expected.value, actual.value);
+//         // compare(expected.name, actual.name);
+//         // compare(expected.left, actual.left);
+//         // compare(expected.right, actual.right);
+//         // compare(expected.operator, actual.operator);
+//
+//         const keys = Object.keys(actual);
+//         for (j = 0; j < keys.length; j++) {
+//             key = keys[j];
+//             if (!nonRelevantKeys.includes(key)) {
+//                 console.log('key: ' + key);
+//                 ex = expected[key];
+//                 ac = actual[key];
+//                 compare(ex, ac);
+//             }
+//
+//         }
+//     }
+//
+//     console.log('#DONE');
+// }
+//
+// function compare(expected, actual){
+//     console.log('$$$ comparing :: expected = ' + expected + ' VS. actual = ' + actual);
+//     try {
+//         if (typeof(expected) === 'object' && typeof(actual) === 'object')
+//             compareObjects(expected, actual);
+//         else
+//             assert.equal(expected, actual);
+//     }
+//     catch (e) {
+//         assert.fail('One of compared object is undefined');
+//
+//     }
+//
+// }
+//
+//
+// function compareExpectedToOutput(expected, actual){
+//     console.log('expected = ');
+//     console.log(expected);
+//     console.log('actual = ');
+//     console.log(actual);
+//
+//     var i;
+//     for(i=0; i<expected.length; i++) {
+//         const keys = Object.keys(expected[i]);
+//         var j;
+//         for(j=0; j<keys.length; j++){
+//             var key = keys[j];
+//             var ex = expected[i][key];
+//             var ac = actual[i][key];
+//             compare(ex, ac);
+//         }
+//     }
+// }
+//
+//
+// describe('Testing Substitute', () => {
+//     it('Binary expression:', () => {
+//         var testText = 'function f(x,y){\n' +
+//             'let a=x+y;\n' +
+//             'return a;\n' +
+//             '}';
+//         var resultFunc = 'function f(x,y){\n' +
+//             'return x+y;\n' +
+//             '}';
+//
+//         before(testText, '');
+//         var expected = parseCode(resultFunc).body;
+//         var actual = [bl.getFuncObj(ast_handler.getExpressions())];
+//         compareExpectedToOutput(expected, actual);
+//     });
+// });
+//
+// describe('Testing Substitute', () => {
+//     it('While Statement:', () => {
+//         var testText = 'function f(x,y){\n let a=x+y;\n while(a<10){\na=a+1;\n}}';
+//         var resultFunc = 'function f(x,y){\n' +
+//             'while(x+y<10){\n' +
+//             '}\n' +
+//             '}';
+//
+//         before(testText, '');
+//         var expected = parseCode(resultFunc).body;
+//         var actual = [bl.getFuncObj(ast_handler.getExpressions())];
+//         compareExpectedToOutput(expected, actual);
+//     });
+// });
+//
+// describe('Testing Substitute', () => {
+//     it('Assignment:', () => {
+//         var testText = 'let a=2;\n' +
+//             'function f(x){\n' +
+//             'let y=a;\n' +
+//             'y=y+1;\n' +
+//             'return y;\n' +
+//             '}';
+//         var resultFunc = 'function f(x){\n' +
+//             'return a+1;\n' +
+//             '}';
+//
+//         before(testText, '');
+//         var expected = parseCode(resultFunc).body;
+//         var actual = [bl.getFuncObj(ast_handler.getExpressions())];
+//         compareExpectedToOutput(expected, actual);
+//     });
+// });

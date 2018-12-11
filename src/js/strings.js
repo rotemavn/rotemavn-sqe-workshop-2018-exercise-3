@@ -17,8 +17,8 @@ var getStringsFunctions = {'Identifier': sName,
     'ThisExpression': sThisExpression,
     'ArrayExpression': sArrayExpression,
     'SequenceExpression': sSequenceExpression,
-    'ArrowFunctionExpression': sArrowFunctionExpression,
-    'NewExpression': sNewExpression,
+    // 'ArrowFunctionExpression': sArrowFunctionExpression,
+    // 'NewExpression': sNewExpression,
     'ConditionalExpression': sConditionalExpression,
     'BlockStatement': sDoNothing,
     'ExpressionStatement': sDoNothing
@@ -131,18 +131,18 @@ function sSequenceExpression(expr){
     return '{' + elements + '}';
 }
 
-function sArrowFunctionExpression(expr){
-    var params = '', i;
-    for(i=0; i<expr.params.length - 1; i++){
-        params += findStringRepresentation(expr.params[i]) + ', ';
-    }
-    params += findStringRepresentation(expr.params[i]);
-    return findStringRepresentation(expr.id) + '(' + params + ') => {' + findStringRepresentation(expr.body)+'}';
-}
-
-function sNewExpression(expr){
-    return sCallExpression(expr);
-}
+// function sArrowFunctionExpression(expr){
+//     var params = '', i;
+//     for(i=0; i<expr.params.length - 1; i++){
+//         params += findStringRepresentation(expr.params[i]) + ', ';
+//     }
+//     params += findStringRepresentation(expr.params[i]);
+//     return findStringRepresentation(expr.id) + '(' + params + ') => {' + findStringRepresentation(expr.body)+'}';
+// }
+//
+// function sNewExpression(expr){
+//     return sCallExpression(expr);
+// }
 
 function sConditionalExpression(expr){
     return findStringRepresentation(expr.test) + ' ? ' + findStringRepresentation(expr.consequent) + ' : ' + findStringRepresentation(expr.alternate);

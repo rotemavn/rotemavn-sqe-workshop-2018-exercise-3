@@ -11,10 +11,10 @@ function before(code, inputParams){
     ast_handler.getValues(parsedCode);
     var expressions = ast_handler.getExpressions();
     var params = bl.createParamVector(inputParams);
-    bl.substitute(expressions, params);
+    bl.substitute(expressions, params, parsedCode);
 }
 
-const nonRelevantKeys = ['range', 'loc', '0', '1', 'line', 'start', 'end', 'col'];
+const nonRelevantKeys = ['range', 'loc', '0', '1', 'line', 'start', 'end', 'col', 'color'];
 
 
 function compareObjectsNotArray(expected, actual, key){
@@ -85,7 +85,7 @@ describe('Testing Substitute', () => {
             'return x+y;\n' +
             '}';
 
-        before(testText, '');
+        before(testText, '1,2');
         var expected = parseCode(resultFunc).body;
         var actual = [bl.getResFunc()];
         compareExpectedToOutput(expected, actual);

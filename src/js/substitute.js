@@ -1,5 +1,6 @@
 import {parseCode} from './code-analyzer';
 import {findStringRepresentation} from './strings';
+import {evalCondition} from './eval';
 
 var inputVector = [];
 var varValues = [];
@@ -10,6 +11,11 @@ var resFunc = {};
 
 
 /// Utils
+
+function getInputVector() {
+    return inputVector;
+}
+
 function varValuesSet(name, value, obj){
     var i;
     for(i=0; i<varValues.length; i++) {
@@ -92,22 +98,33 @@ function addToValueVector(res, ex){
     varValuesSet(findStringRepresentation(res), res, ex);
 }
 
+function conditionalAddToValueVector(res, ex, toAdd){
+    if(toAdd)
+        varValuesSet(findStringRepresentation(res), res, ex);
+}
+
 
 ///////////////////////////////////////////////////////////
 
 function createNewInitVar(ex, paramValues){
     var initVar;
     var paramValuesIndex=0;
-    if((ex.line < startOfFunction ||  ex.line > endOfFunction)){
+    if(ex.type !== 'FunctionDeclaration'){
         initVar = {name: ex.name, value: ex.valueObj, obj: ex};
         inputVector.push(initVar);
         varValues.push(initVar);
     }
-    else if(ex.line === startOfFunction && ex.type === 'Identifier'){
-        initVar = {name: ex.name, value: paramValues[paramValuesIndex], obj: ex};
-        paramValuesIndex++;
-        inputVector.push(initVar);
-        varValues.push(initVar);
+    else{
+        var params = ex.params;
+        if(params !== undefined) {
+            var i;
+            for (i = 0; i < params.length; i++) {
+                initVar = {name: params[i].name, value: paramValues[paramValuesIndex], obj: params[i]};
+                paramValuesIndex++;
+                inputVector.push(initVar);
+                varValues.push(initVar);
+            }
+        }
     }
 }
 
@@ -225,11 +242,13 @@ function replaceAssignmentExpression(ex){
 function replaceIfStatement(ex){
     var res =  JSON.parse(JSON.stringify(ex));
     res.test = replaceExpressionsFunctions[ex.test.type](ex.test);
+    var color = evalCondition(res.test, inputVector, varValues);
+    res.test.color = color;
     res.consequent.body = [];
     var i, body = ex.consequent.body;
     for(i=0; i<body.length; i++){
         var exp = replaceExpressionsFunctions[body[i].type](body[i]);
-        addToValueVector(exp, body[i]);
+        // addToValueVector(exp, body[i]);
         if(checkIfExprIsNecessary(exp))
             res.consequent.body.push(exp);
     }
@@ -263,10 +282,10 @@ function checkIfExprIsNecessary(ex){
 
 }
 
-function substitute(expressions, paramValues){
+function substitute(expressions, paramValues, originCode){
     originExpressions = expressions;
     findFunctionStartAndEnd(expressions);
-    createInputVector(expressions, paramValues);
+    createInputVector(originCode, paramValues);
     var i, func = getFuncObj(originExpressions);
     var funcBody = func.body.body;
     var blockStatement = func.body;
@@ -285,4 +304,4 @@ function substitute(expressions, paramValues){
 
 ///////////////////////////////////////////////////////////
 
-export {substitute, createParamVector, restart, getResFunc, getFuncObj};
+export {substitute, createParamVector, restart, getResFunc, getFuncObj, getInputVector};

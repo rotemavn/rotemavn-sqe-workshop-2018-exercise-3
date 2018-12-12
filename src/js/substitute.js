@@ -1,7 +1,6 @@
 import {parseCode} from './code-analyzer';
 import {findStringRepresentation} from './strings';
 import {evalCondition, evalString} from './eval';
-import * as escodegen from 'escodegen';
 // import $ from "jquery";
 // var safeEval = require('safe-eval');
 

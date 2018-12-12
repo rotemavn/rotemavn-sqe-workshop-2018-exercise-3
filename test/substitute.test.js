@@ -18,13 +18,6 @@ const nonRelevantKeys = ['range', 'loc', '0', '1', 'line', 'start', 'end', 'col'
 
 
 function compareObjectsNotArray(expected, actual, key){
-    // console.log('#############################################');
-    // console.log('key');
-    // console.log(key);
-    // console.log('expected');
-    // console.log(expected);
-    // console.log('actual');
-    // console.log(actual);
     if(!nonRelevantKeys.includes(key)){
         expected = expected[key];
         actual = actual[key];
@@ -34,10 +27,6 @@ function compareObjectsNotArray(expected, actual, key){
 
 
 function compareObjects(expected, actual){
-    // console.log('expected');
-    // console.log(expected);
-    // console.log('actual');
-    // console.log(actual);
     var i, j, key;
     if(expected.length !== undefined){
         for(i=0; i<expected.length; i++){
@@ -55,10 +44,6 @@ function compareObjects(expected, actual){
 }
 
 function compare(expected, actual){
-    // console.log('expected');
-    // console.log(expected);
-    // console.log('actual');
-    // console.log(actual);
     try {
         if(expected == null) {
             assert.equal(true, true);
@@ -76,10 +61,6 @@ function compare(expected, actual){
 
 
 function compareExpectedToOutput(expected, actual){
-    // console.log('expected');
-    // console.log(expected);
-    // console.log('actual');
-    // console.log(actual);
     var i;
     for(i=0; i<expected.length; i++) {
         const keys = Object.keys(expected[i]);
@@ -403,9 +384,7 @@ describe('Testing Substitute', () => {
             '    \n' +
             '    if (b < z) {\n' +
             '        c = c + 5;\n' +
-            '        return x + y + z + c;\n' +
-            '}\n' +
-            '}';
+            '        return x + y + z + c;\n}\n}';
         var resultFunc = 'function foo(x, y, z){\n' +
             'if(x+1+y<z)\n' +
             '{\n' +

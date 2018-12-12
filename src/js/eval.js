@@ -1,15 +1,22 @@
 import {findStringRepresentation} from './strings';
 import * as escodegen from 'escodegen';
 
-var safeEval = require('safe-eval');
+// var safeEval = require('safe-eval');
+var scopes;
+var scopeNum;
 
 function varValuesGet(ex){
-    var i;
+    var i, j;
     var name = findStringRepresentation(ex);
-    for(i=0; i<values.length; i++) {
-        if(values[i].name === name)
-            return values[i].value;
+    for(j=scopeNum; j>=0; j--) {
+        var values = scopes[j];
+        for (i = 0; i < values.length; i++) {
+            if (values[i].name === name)
+                return values[i].value;
+        }
     }
+    // return null;
+
 }
 
 // function inputVectorGet(ex){
@@ -23,7 +30,6 @@ function varValuesGet(ex){
 //
 // }
 
-var values;
 
 
 var evalExpressions = {
@@ -86,24 +92,14 @@ function binaryExpressionToString(ex){
     var right = ex.right;
     var op = ex.operator;
     var decOp = decodeHtml(op);
-    if(typeof l === 'number' && typeof r === 'number'){
-        return safeEval(left + decOp + right);
-    }
-    else
-        return evalString(left) + decOp + evalString(right);
+    return evalString(left) + decOp + evalString(right);
 }
 
-
-function evalCondition(condition, inputVector, valueVector){
-    console.log('condition:');
-    console.log(JSON.stringify(condition,null,2));
-    console.log('inputVector:');
-    console.log(inputVector);
-    console.log('valueVector:');
-    console.log(valueVector);
-    values = valueVector;
+function evalCondition(condition, inputVector, valueVector, scope){
+    scopes = valueVector;
+    scopeNum = scope;
     var code = evalExpressions[condition.type](condition);
-    var evalRes = safeEval(code);
+    var evalRes = eval(code);
     if(evalRes === true)
         return 'green';
     else

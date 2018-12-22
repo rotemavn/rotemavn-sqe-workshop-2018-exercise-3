@@ -19,18 +19,6 @@ function varValuesGet(ex){
 
 }
 
-// function inputVectorGet(ex){
-//     var i;
-//     var name = findStringRepresentation(ex);
-//     for(i=0; i<inputVector.length; i++) {
-//         if(inputVector[i].name === name)
-//             return inputVector[i].value;
-//     }
-//     return null;
-//
-// }
-
-
 
 var evalExpressions = {
     'BinaryExpression': evalBinaryExpression,
@@ -47,12 +35,6 @@ function evalBinaryExpression(ex){
     var op = ex.operator;
     var l = evalExpressions[left.type](left);
     var r = evalExpressions[right.type](right);
-    // if(typeof l === 'number' && typeof r === 'number'){
-    //     var val = safeEval(l + op + r);
-    //     return {type: 'Literal', value:val};
-    // }
-    // else
-    //     return l + op + r;
     return l + op + r;
 }
 
@@ -103,9 +85,7 @@ function evalCondition(condition, inputVector, valueVector, scope){
     if(evalRes === true)
         return 'green';
     else
-        return 'red';
-
-
+        return 'grey';
 }
 
 export {evalCondition, evalString};

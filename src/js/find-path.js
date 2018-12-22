@@ -9,7 +9,6 @@ var originExpressions;
 var resFunc = {};
 var scopes = [];
 
-
 /// Utils
 function varValuesSet(name, value, scope){
     if(scopes[scope] == null || scopes[scope] === undefined)
@@ -170,7 +169,7 @@ function resetScope(scopeNum){
 
 function conditionalAddToValueVector(res, ex, scopeNum){
     var scope = scopes[scopeNum];
-    if(scope == null || scope === undefined){
+    if(scope == null ){
         scopes[scopeNum] = [];
     }
     varValuesSet(findStringRepresentation(res), ex, scopeNum);
@@ -212,179 +211,160 @@ function createInputVector(expressions, paramValues){
 
 //////////////// Replacement functions ///////////////////////
 
-var replaceExpressionsFunctions = {
-    'BinaryExpression': replaceBinaryExpression,
-    'Literal': replaceLiteral,
-    'Identifier': replaceIdentifier,
-    'ReturnStatement': replaceReturn,
-    'VariableDeclaration': replaceVariableDeclaration,
-    'VariableDeclarator': replaceVariableDeclarator,
-    'WhileStatement': replaceWhileStatement,
-    'ExpressionStatement': replaceExpressionStatement,
-    'AssignmentExpression': replaceAssignmentExpression,
-    'IfStatement': replaceIfStatement,
-    'BlockStatement': replaceBlockStatement,
-    'MemberExpression': replaceMemberExpression,
-    'ArrayExpression': replaceArrayExpression,
+var iterateExpressionsFunctions = {
+    'BinaryExpression': iterateBinaryExpression,
+    'Literal': iterateLiteral,
+    'Identifier': iterateIdentifier,
+    'ReturnStatement': iterateReturn,
+    'VariableDeclaration': iterateVariableDeclaration,
+    'VariableDeclarator': iterateVariableDeclarator,
+    'WhileStatement': iterateWhileStatement,
+    'ExpressionStatement': iterateExpressionStatement,
+    'AssignmentExpression': iterateAssignmentExpression,
+    'IfStatement': iterateIfStatement,
+    'BlockStatement': iterateBlockStatement,
+    'MemberExpression': iterateMemberExpression,
+    'ArrayExpression': iterateArrayExpression,
 };
 
 
 
-function replaceLiteral(ex, scopeNum){// eslint-disable-line no-unused-vars
+function iterateLiteral(ex, scopeNum, color){// eslint-disable-line no-unused-vars
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.color = color;
+    return res;
+}
+
+function iterateIdentifier(ex, scopeNum, color){// eslint-disable-line no-unused-vars
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.color = color;
+    return res;
+}
+
+function iterateBinaryExpression(ex, scopeNum, color){
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.color = color;
+    iterateExpressionsFunctions[ex.left.type](ex.left, scopeNum, color);
+    iterateExpressionsFunctions[ex.right.type](ex.right, scopeNum, color);
+    return res;
+}
+
+function iterateReturn(ex, scopeNum, color){
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.color = color;
+    iterateExpressionsFunctions[ex.argument.type](ex.argument, scopeNum, color);
+    return res;
+}
+
+function iterateVariableDeclaration(ex, scopeNum, color){
+    var i;
+    var res =  JSON.parse(JSON.stringify(ex));
+    res.color = color;
+    res.declarations = [];
+    for(i=0; i<ex.declarations.length; i++){
+        res.declarations[i] = iterateExpressionsFunctions[ex.declarations[i].type](ex.declarations[i], scopeNum, color);
+    }
+    return res;
+
+}
+
+function iterateVariableDeclarator(ex, scopeNum, color){
+    var res = JSON.parse(JSON.stringify(ex));
+    res.init = iterateExpressionsFunctions[ex.init.type](ex.init, scopeNum, color);
+    ex.color = color;
+    conditionalAddToValueVector(res.id, res.init, scopeNum);
     return ex;
 }
 
-function replaceIdentifier(ex, scopeNum){// eslint-disable-line no-unused-vars
-    var initIdentifier = inputVectorGet(ex);
-    if(initIdentifier != null)
-        return ex;
-    var realValue = varValuesGet(ex, scopeNum);
-    if(realValue != null){
-        return realValue;
-    }
-    else
-        return ex;
-}
-
-function replaceBinaryExpression(ex, scopeNum){
+function iterateWhileStatement(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
-    res.left = replaceExpressionsFunctions[ex.left.type](ex.left, scopeNum);
-    res.right = replaceExpressionsFunctions[ex.right.type](ex.right, scopeNum);
-
-
-    if(res.left.type === 'Literal' && res.right.type === 'Literal'){
-        var val = res.left.value + res.operator + res.right.value;
-        var evaluatedValue = eval(val);
-        var lit = JSON.parse(JSON.stringify(res.left));
-        lit.value = evaluatedValue;
-        return lit;
-    }
-
-    // addToValueVector(res, ex);
-
-    return res;
-}
-
-function replaceReturn(ex, scopeNum){
-    var res =  JSON.parse(JSON.stringify(ex));
-    res.argument = replaceExpressionsFunctions[ex.argument.type](ex.argument, scopeNum);
-    // addToValueVector(res, ex);
-    return res;
-}
-
-function replaceVariableDeclaration(ex, scopeNum){
-    var res =  JSON.parse(JSON.stringify(ex));
-    var i;
-    for(i=0; i<ex.declarations.length; i++){
-        res.declarations[i] = replaceExpressionsFunctions[ex.declarations[i].type](ex.declarations[i], scopeNum);
-    }
-    return res;
-
-}
-
-function replaceVariableDeclarator(ex, scopeNum){
-    var res = JSON.parse(JSON.stringify(ex));
-    res.init = replaceExpressionsFunctions[ex.init.type](ex.init, scopeNum);
-    conditionalAddToValueVector(res.id, res.init, scopeNum);
-    // addToValueVector(res, ex);
-    return res;
-}
-
-function replaceWhileStatement(ex, scopeNum){
-    var res =  JSON.parse(JSON.stringify(ex));
-    res.test = replaceExpressionsFunctions[ex.test.type](ex.test, scopeNum);
+    res.test = iterateExpressionsFunctions[ex.test.type](ex.test, scopeNum, color);
+    res.test.color = color;
     res.body.body = [];
     var i, body = ex.body.body;
     var scope = scopeNum + 1;
     for(i=0; i<body.length; i++){
-        var exp = replaceExpressionsFunctions[body[i].type](body[i], scope);
-        // addToValueVector(exp, body[i]);
-        if(checkIfExprIsNecessary(exp))
-            res.body.body.push(exp);
+        iterateExpressionsFunctions[body[i].type](body[i], scope, color);
+        res.body.body.push(body[i]);
     }
     resetScope(scope);
-    // addToValueVector(res, ex);
     return res;
 
 }
 
-function replaceExpressionStatement(ex, scopeNum){
+function iterateExpressionStatement(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
-    res.expression = replaceExpressionsFunctions[ex.expression.type](ex.expression, scopeNum);
+    res.color = color;
+    res.expression = iterateExpressionsFunctions[ex.expression.type](ex.expression, scopeNum, color);
     return res;
 }
 
-function replaceAssignmentExpression(ex, scopeNum){
+function iterateAssignmentExpression(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
-    res.right = replaceExpressionsFunctions[ex.right.type](ex.right, scopeNum);
+    res.color = color;
+    var right = iterateExpressionsFunctions[ex.right.type](ex.right, scopeNum, color);
     var left = ex.left;
-    conditionalAddToValueVector(left, res.right, scopeNum);
-    // addToValueVector(res, ex);
+    conditionalAddToValueVector(left, right, scopeNum);
     return res;
 }
 
-function replaceIfStatement(ex, scopeNum){
+function getOppositeColor(color){
+    if(color === 'green')
+        return 'grey';
+    return 'green';
+}
+
+function iterateIfStatement(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
-    res.test = replaceExpressionsFunctions[ex.test.type](ex.test, scopeNum);
-    res.test.color = evalCondition(res.test, inputVector, scopes, scopeNum);
+    res.test = iterateExpressionsFunctions[ex.test.type](ex.test, scopeNum, color);
+    var condition_color = evalCondition(res.test, inputVector, scopes, scopeNum);
+    res.test.color = color;
     res.consequent.body = [];
     var scope = scopeNum + 1;
     var i, body = ex.consequent.body;
     for(i=0; i<body.length; i++){
-        var exp = replaceExpressionsFunctions[body[i].type](body[i], scope);
-        if(checkIfExprIsNecessary(exp))
-            res.consequent.body.push(exp);
+        var it = iterateExpressionsFunctions[body[i].type](body[i], scope,condition_color);
+        res.consequent.body.push(it);
     }
     resetScope(scope);
     if(res.alternate != null) {
-
-        res.alternate = replaceExpressionsFunctions[res.alternate.type](res.alternate, scopeNum);
+        res.alternate = iterateExpressionsFunctions[res.alternate.type](res.alternate, scopeNum, getOppositeColor(condition_color));
     }
     return res;
 }
 
-function replaceBlockStatement(ex, scopeNum){
+function iterateBlockStatement(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
-    var body = ex.body;
+    res.color = color;
     res.body = [];
+    var body = ex.body;
     var i;
     for(i=0; i<body.length; i++){
-        var exp = replaceExpressionsFunctions[body[i].type](body[i], scopeNum);
-        // addToValueVector(exp, body[i]);
-        if(checkIfExprIsNecessary(exp)) {
-            res.body.push(exp);
-        }
+        res.body[i] = iterateExpressionsFunctions[body[i].type](body[i], scopeNum, color);
     }
     return res;
 }
 
-function replaceMemberExpression(ex, scopeNum){
+function iterateMemberExpression(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
-    res.object = replaceExpressionsFunctions[ex.object.type](ex.object, scopeNum);
-    res.property = replaceExpressionsFunctions[ex.property.type](ex.property, scopeNum);
+    res.color = color;
+    iterateExpressionsFunctions[ex.object.type](ex.object, scopeNum, color);
+    iterateExpressionsFunctions[ex.property.type](ex.property, scopeNum, color);
     return res;
 }
 
-function replaceArrayExpression(ex, scopeNum){
+function iterateArrayExpression(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
+    res.color = color;
     var elements = ex.elements;
     var i;
     for(i=0; i<elements.length; i++){
-        res.elements[i] = replaceExpressionsFunctions[elements[i].type](elements[i], scopeNum);
+        iterateExpressionsFunctions[elements[i].type](elements[i], scopeNum, color);
     }
     return res;
 }
 
-function checkIfExprIsNecessary(ex){
-    if(ex.type === 'VariableDeclaration')
-        return false;
-    if(ex.type === 'ExpressionStatement')
-        ex = ex.expression;
-    return !(ex.type === 'AssignmentExpression' && inputVectorGet(ex.left) == null);
-
-}
-
-function substitute(expressions, paramValues, originCode){
+function iterateCode(expressions, paramValues, originCode){
     originExpressions = expressions;
     createInputVector(originCode, paramValues);
     var i, func = getFuncObj(originExpressions);
@@ -393,16 +373,35 @@ function substitute(expressions, paramValues, originCode){
     var newFuncBody = [];
     for(i=0; i<funcBody.length; i++){
         var oldExpr = funcBody[i];
-        var newExpr = replaceExpressionsFunctions[oldExpr.type](oldExpr, 0);
-        if(checkIfExprIsNecessary(newExpr))
-            newFuncBody.push(newExpr);
+        var newExpr = iterateExpressionsFunctions[oldExpr.type](oldExpr, 0, 'green');
+        newFuncBody.push(newExpr);
     }
     blockStatement.body = newFuncBody;
 
     resFunc = {type: func.type, body: blockStatement, loc: func.loc, expression: func.expression,
         generator: func.generator, id: func.id, params: func.params, async: func.async, range: func.range};
+
+    console.log('origin = ');
+    console.log(func.body.body);
+    console.log('new = ');
+    console.log(newFuncBody);
+}
+
+
+function getOnlyBodyNoReturn(func) {
+    var blockStmt = func.body;
+    var res =  JSON.parse(JSON.stringify(blockStmt));
+    var funcBody = func.body.body;
+    var body = [];
+    var i;
+    for(i=0; i<funcBody.length; i++)
+        body.push(func.body.body[i]);
+    res.body = body;
+    return res;
+
+    
 }
 
 ///////////////////////////////////////////////////////////
 
-export {substitute, createParamVector, restart, getResFunc, getFuncObj, getFuncHTML};
+export {iterateCode, createParamVector, restart, getResFunc, getFuncObj, getFuncHTML, getOnlyBodyNoReturn};

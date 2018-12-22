@@ -46,7 +46,7 @@ function sDoNothing(expr){ // eslint-disable-line no-unused-vars
 }
 
 function sReturnStatement(expr){
-    return findStringRepresentation(expr.argument);
+    return 'return ' + findStringRepresentation(expr.argument);
 }
 
 function sAssignmentExpression(expr){

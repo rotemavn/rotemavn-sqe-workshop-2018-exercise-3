@@ -1,5 +1,4 @@
 import {findStringRepresentation} from './strings';
-import * as escodegen from 'escodegen';
 
 // var safeEval = require('safe-eval');
 var scopes;
@@ -15,8 +14,6 @@ function varValuesGet(ex){
                 return values[i].value;
         }
     }
-    // return null;
-
 }
 
 
@@ -48,35 +45,6 @@ function evalIdentifier(ex){
 
 }
 
-function evalString(str){
-    if(str.type !== 'BinaryExpression')
-        return escodegen.generate(str);
-    else
-        return binaryExpressionToString(str);
-}
-
-
-function decodeHtml(str) {
-    var map =
-        {
-            '&': '&amp;',
-            '<':'&lt;',
-            '>':'&gt;',
-            '"':'&quot;',
-            '\'':'&#039;',
-        };
-    return str.replace(/&|<|>|"|'/g, function (m) { return map[m];
-
-    });}
-
-function binaryExpressionToString(ex){
-    var left = ex.left;
-    var right = ex.right;
-    var op = ex.operator;
-    var decOp = decodeHtml(op);
-    return evalString(left) + decOp + evalString(right);
-}
-
 function evalCondition(condition, inputVector, valueVector, scope){
     scopes = valueVector;
     scopeNum = scope;
@@ -88,4 +56,4 @@ function evalCondition(condition, inputVector, valueVector, scope){
         return 'grey';
 }
 
-export {evalCondition, evalString};
+export {evalCondition};

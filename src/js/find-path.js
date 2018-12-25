@@ -1,47 +1,88 @@
 import {parseCode} from './code-analyzer';
 import {findStringRepresentation} from './strings';
-import {evalCondition, evalString} from './eval';
-// import $ from "jquery";
-// var safeEval = require('safe-eval');
+import {evalCondition} from './eval';
 
-var inputVector = [];
-var originExpressions;
-var resFunc = {};
-var scopes = [];
+
+let inputVector = [];
+let originExpressions;
+let resFunc = {};
+let scopes = [];
+
+
+
+let classFunctions = {
+    'varValuesSet': varValuesSet,
+    'createParamVector':createParamVector,
+    'getFuncObj': getFuncObj,
+    'conditionalAddToValueVector': conditionalAddToValueVector,
+    'createNewInitVar': createNewInitVar,
+    'createInputVector': createInputVector,
+    'iterateBinaryExpression': iterateBinaryExpression,
+    'iterateLiteral': iterateLiteral,
+    'iterateIdentifier': iterateIdentifier,
+    'iterateReturn': iterateReturn,
+    'iterateVariableDeclaration': iterateVariableDeclaration,
+    'iterateVariableDeclarator': iterateVariableDeclarator,
+    'iterateWhileStatement': iterateWhileStatement,
+    'iterateExpressionStatement': iterateExpressionStatement,
+    'iterateAssignmentExpression': iterateAssignmentExpression,
+    'iterateIfStatement': iterateIfStatement,
+    'iterateBlockStatement': iterateBlockStatement,
+    'iterateMemberExpression': iterateMemberExpression,
+    'iterateArrayExpression': iterateArrayExpression,
+    'getOppositeColor': getOppositeColor,
+    'iterateCode': getResFuncBody,
+    'getScopes': getScopes,
+    'resetScope': resetScope,
+
+};
+
+
 
 /// Utils
+
+function getScopes(){
+    return scopes;
+}
+
+function testFunction(functionName, params){
+    return classFunctions[functionName].apply(null, params);
+}
+
 function varValuesSet(name, value, scope){
     if(scopes[scope] == null || scopes[scope] === undefined)
         scopes[scope] = [];
 
-    var i;
+    let i;
     for(i=0; i<scopes[scope].length; i++) {
         if(scopes[scope][i].name === name) {
             scopes[scope][i].value = value;
             return;
         }
     }
-    var newVar = {name: name, value:value};
+    let newVar = {name: name, value:value};
     scopes[scope].push(newVar);
 }
 
-
 function createParamVector(inputP){
-    var parsedParams = parseCode(inputP);
+    let parsedParams = parseCode(inputP);
     if(parsedParams.body.length === 0)
         return [];
-    return parsedParams.body[0].expression.expressions;
+    let partOfRet = parsedParams.body[0].expression;
+    if(partOfRet.expressions === undefined)
+        return partOfRet;
+    return partOfRet.expressions;
 }
 
 
-function restart(){
+function restartFindPath(){
     inputVector = [];
     scopes = [];
 }
 
 
 function getFuncObj(expressions){
-    var i;
+    let i;
     for(i=0; i<expressions.length; i++){
         if(expressions[i].type === 'FunctionDeclaration'){
             return expressions[i].valueObj;
@@ -49,103 +90,16 @@ function getFuncObj(expressions){
     }
 }
 
-
-function evaluateOutput(exp){
-    if(exp.length === undefined)
-        exp = [exp];
-    var i;
-    var str = '';
-    for(i=0; i<exp.length; i++){
-        var res = evalString(exp[i]);
-        str += res;
-    }
-    return str;
-
-}
-
-function createIfOutput(exp){
-    var html = '';
-    var test = exp.test;
-    var evalTest = '(' + evaluateOutput(test) + ')';
-    html = html + '<em style="color:' + test.color + '">if' + evalTest + '</em><br>';
-    var consenquent = exp.consequent.body;
-    html = html + '{<br>&emsp;' + evaluateOutput(consenquent) + '<br>}';
-    if(exp.alternate !== undefined && exp.alternate != null) {
-        return html + '<br>else ' + createOutput(exp.alternate) + '<br>';
-    }
-    else
-        return html;
-}
-
-
-function createWhileOutput(exp){
-    var html = '';
-    var test = exp.test;
-    var evalTest = '(' + evaluateOutput(test) + ')';
-    html = html + '&emsp;while' + evalTest + '<br>';
-    var body = exp.body.body;
-    html = html + '&emsp;{<br>&emsp;' + evaluateOutput(body) + '<br>&emsp;}';
-    return html;
-}
-
-function createOutput(exp){
-    // if(exp === undefined || exp == null)
-    //     return '';
-    var html = '';
-    if(exp.type === 'IfStatement'){
-        html += createIfOutput(exp);
-    }
-    else if(exp.type === 'WhileStatement'){
-        html +=createWhileOutput(exp);
-    }
-    else{
-        html +='&emsp;' + evaluateOutput(exp) + '<br>';
-    }
-    return html;
-
-}
-
-
-function colorOutput(func){
-    var funcBody = func.body.body;
-    var i;
-    var params = '(';
-    for(i=0; i<func.params.length; i++){
-        if(i>0)
-            params += ', ' + func.params[i].name;
-        else
-            params += func.params[i].name;
-    }
-    params += ')';
-
-    var html = 'function '+func.id.name + params + '{<br>';
-    for(i=0; i<funcBody.length; i++){
-        var exp = funcBody[i];
-        html = html + createOutput(exp);
-
-    }
-    return html + '<br>}';
-}
-
-function getFuncHTML(){
-    return colorOutput(resFunc);
-}
-
-
-function getResFunc(){
-    return resFunc;
-}
-
 function resetScope(scopeNum){
     scopes[scopeNum] = [];
 }
 
-function conditionalAddToValueVector(res, ex, scopeNum){
-    var scope = scopes[scopeNum];
+function conditionalAddToValueVector(id, ex, scopeNum){
+    let scope = scopes[scopeNum];
     if(scope == null ){
         scopes[scopeNum] = [];
     }
-    varValuesSet(findStringRepresentation(res), ex, scopeNum);
+    varValuesSet(findStringRepresentation(id), ex, scopeNum);
 
 }
 
@@ -153,15 +107,15 @@ function conditionalAddToValueVector(res, ex, scopeNum){
 ///////////////////////////////////////////////////////////
 
 function createNewInitVar(ex, paramValues){
-    var initVar;
-    var paramValuesIndex=0;
+    let initVar;
+    let paramValuesIndex=0;
     if(ex.type !== 'FunctionDeclaration'){
         initVar = {name: ex.name, value: ex.valueObj, obj: ex};
         inputVector.push(initVar);
         varValuesSet(ex.name, ex.valueObj, 0);
     }
     else{
-        var params = ex.params, i;
+        let params = ex.params, i;
         for (i = 0; i < params.length; i++) {
             initVar = {name: params[i].name, value: paramValues[paramValuesIndex], obj: params[i]};
             inputVector.push(initVar);
@@ -174,9 +128,9 @@ function createNewInitVar(ex, paramValues){
 
 
 function createInputVector(expressions, paramValues){
-    var i;
+    let i;
     for(i=0; i<expressions.length; i++){
-        var ex = expressions[i];
+        let ex = expressions[i];
         createNewInitVar(ex, paramValues);
     }
 }
@@ -184,7 +138,7 @@ function createInputVector(expressions, paramValues){
 
 //////////////// Replacement functions ///////////////////////
 
-var iterateExpressionsFunctions = {
+let iterateExpressionsFunctions = {
     'BinaryExpression': iterateBinaryExpression,
     'Literal': iterateLiteral,
     'Identifier': iterateIdentifier,
@@ -203,19 +157,19 @@ var iterateExpressionsFunctions = {
 
 
 function iterateLiteral(ex, scopeNum, color){// eslint-disable-line no-unused-vars
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     return res;
 }
 
 function iterateIdentifier(ex, scopeNum, color){// eslint-disable-line no-unused-vars
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     return res;
 }
 
 function iterateBinaryExpression(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     iterateExpressionsFunctions[ex.left.type](ex.left, scopeNum, color);
     iterateExpressionsFunctions[ex.right.type](ex.right, scopeNum, color);
@@ -223,15 +177,15 @@ function iterateBinaryExpression(ex, scopeNum, color){
 }
 
 function iterateReturn(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     iterateExpressionsFunctions[ex.argument.type](ex.argument, scopeNum, color);
     return res;
 }
 
 function iterateVariableDeclaration(ex, scopeNum, color){
-    var i;
-    var res =  JSON.parse(JSON.stringify(ex));
+    let i;
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     res.declarations = [];
     for(i=0; i<ex.declarations.length; i++){
@@ -242,7 +196,7 @@ function iterateVariableDeclaration(ex, scopeNum, color){
 }
 
 function iterateVariableDeclarator(ex, scopeNum, color){
-    var res = JSON.parse(JSON.stringify(ex));
+    let res = JSON.parse(JSON.stringify(ex));
     res.init = iterateExpressionsFunctions[ex.init.type](ex.init, scopeNum, color);
     ex.color = color;
     conditionalAddToValueVector(res.id, res.init, scopeNum);
@@ -250,16 +204,16 @@ function iterateVariableDeclarator(ex, scopeNum, color){
 }
 
 function iterateWhileStatement(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
 
-    var condition_color = evalCondition(res.test, inputVector, scopes, scopeNum);
+    let condition_color = evalCondition(res.test, inputVector, scopes, scopeNum);
     res.test = iterateExpressionsFunctions[ex.test.type](ex.test, scopeNum, color);
     res.test.color = color;
     res.body.body = [];
-    var i, body = ex.body.body;
-    var scope = scopeNum + 1;
+    let i, body = ex.body.body;
+    let scope = scopeNum + 1;
     for(i=0; i<body.length; i++){
-        var b = iterateExpressionsFunctions[body[i].type](body[i], scope, condition_color);
+        let b = iterateExpressionsFunctions[body[i].type](body[i], scope, condition_color);
         res.body.body.push(b);
     }
     resetScope(scope);
@@ -268,37 +222,31 @@ function iterateWhileStatement(ex, scopeNum, color){
 }
 
 function iterateExpressionStatement(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     res.expression = iterateExpressionsFunctions[ex.expression.type](ex.expression, scopeNum, color);
     return res;
 }
 
 function iterateAssignmentExpression(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
-    var right = iterateExpressionsFunctions[ex.right.type](ex.right, scopeNum, color);
-    var left = ex.left;
+    let right = iterateExpressionsFunctions[ex.right.type](ex.right, scopeNum, color);
+    let left = ex.left;
     conditionalAddToValueVector(left, right, scopeNum);
     return res;
 }
 
-function getOppositeColor(color){
-    if(color === 'green')
-        return 'grey';
-    return 'green';
-}
-
 function iterateIfStatement(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.test = iterateExpressionsFunctions[ex.test.type](ex.test, scopeNum, color);
-    var condition_color = evalCondition(res.test, inputVector, scopes, scopeNum);
+    let condition_color = evalCondition(res.test, inputVector, scopes, scopeNum);
     res.test.color = color;
     res.consequent.body = [];
-    var scope = scopeNum + 1;
-    var i, body = ex.consequent.body;
+    let scope = scopeNum + 1;
+    let i, body = ex.consequent.body;
     for(i=0; i<body.length; i++){
-        var it = iterateExpressionsFunctions[body[i].type](body[i], scope,condition_color);
+        let it = iterateExpressionsFunctions[body[i].type](body[i], scope,condition_color);
         res.consequent.body.push(it);
     }
     resetScope(scope);
@@ -309,11 +257,11 @@ function iterateIfStatement(ex, scopeNum, color){
 }
 
 function iterateBlockStatement(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     res.body = [];
-    var body = ex.body;
-    var i;
+    let body = ex.body;
+    let i;
     for(i=0; i<body.length; i++){
         res.body[i] = iterateExpressionsFunctions[body[i].type](body[i], scopeNum, color);
     }
@@ -321,7 +269,7 @@ function iterateBlockStatement(ex, scopeNum, color){
 }
 
 function iterateMemberExpression(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
     iterateExpressionsFunctions[ex.object.type](ex.object, scopeNum, color);
     iterateExpressionsFunctions[ex.property.type](ex.property, scopeNum, color);
@@ -329,10 +277,10 @@ function iterateMemberExpression(ex, scopeNum, color){
 }
 
 function iterateArrayExpression(ex, scopeNum, color){
-    var res =  JSON.parse(JSON.stringify(ex));
+    let res =  JSON.parse(JSON.stringify(ex));
     res.color = color;
-    var elements = ex.elements;
-    var i;
+    let elements = ex.elements;
+    let i;
     for(i=0; i<elements.length; i++){
         iterateExpressionsFunctions[elements[i].type](elements[i], scopeNum, color);
     }
@@ -342,41 +290,41 @@ function iterateArrayExpression(ex, scopeNum, color){
 function iterateCode(expressions, paramValues, originCode){
     originExpressions = expressions;
     createInputVector(originCode, paramValues);
-    var i, func = getFuncObj(originExpressions);
-    var funcBody = func.body.body;
-    var blockStatement = func.body;
-    var newFuncBody = [];
+    let i, func = getFuncObj(originExpressions);
+    let funcBody = func.body.body;
+    let blockStatement = func.body;
+    let newFuncBody = [];
     for(i=0; i<funcBody.length; i++){
-        var oldExpr = funcBody[i];
-        var newExpr = iterateExpressionsFunctions[oldExpr.type](oldExpr, 0, 'green');
+        let oldExpr = funcBody[i];
+        let newExpr = iterateExpressionsFunctions[oldExpr.type](oldExpr, 0, 'green');
         newFuncBody.push(newExpr);
     }
     blockStatement.body = newFuncBody;
 
     resFunc = {type: func.type, body: blockStatement, loc: func.loc, expression: func.expression,
         generator: func.generator, id: func.id, params: func.params, async: func.async, range: func.range};
+}
 
-    console.log('origin = ');
-    console.log(func.body.body);
-    console.log('new = ');
-    console.log(newFuncBody);
+function getOppositeColor(color){
+    if(color === 'green')
+        return 'grey';
+    return 'green';
 }
 
 
-function getOnlyBodyNoReturn(func) {
-    var blockStmt = func.body;
-    var res =  JSON.parse(JSON.stringify(blockStmt));
-    var funcBody = func.body.body;
-    var body = [];
-    var i;
+
+function getResFuncBody() {
+    let blockStmt = resFunc.body;
+    let res =  JSON.parse(JSON.stringify(blockStmt));
+    let funcBody = resFunc.body.body;
+    let body = [];
+    let i;
     for(i=0; i<funcBody.length; i++)
-        body.push(func.body.body[i]);
+        body.push(resFunc.body.body[i]);
     res.body = body;
     return res;
-
-    
 }
 
 ///////////////////////////////////////////////////////////
 
-export {iterateCode, createParamVector, restart, getResFunc, getFuncObj, getFuncHTML, getOnlyBodyNoReturn};
+export {iterateCode, createParamVector, restartFindPath, getResFuncBody, testFunction};

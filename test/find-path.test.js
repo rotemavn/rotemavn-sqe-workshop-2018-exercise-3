@@ -144,9 +144,6 @@ describe('getFuncObj', () => {
         let expressions = [{type:'FunctionDeclaration', valueObj:['let x=1;']}];
         let actual = testFunction('getFuncObj', [expressions]);
         let expected = ['let x=1;'];
-        //
-        // console.log('actual = ', actual);
-        // console.log('expected = ', expected);
         compareExpectedToOutput(expected, actual);
     });
     it('no function:', () => {

@@ -1,7 +1,6 @@
 import {findStringRepresentation} from './strings';
 
 const esgraph = require('esgraph');
-const Viz = require('viz.js');
 
 
 let transitions = [];
@@ -110,7 +109,7 @@ function concatToGraph(){
     }
     for(i=0; i<transitions.length; i++){
         let label = transitions[i].label;
-        if(label === '' || label === undefined)
+        if(label === '')
             label = '""';
         let transition = transitions[i].from + ' -> ' + transitions[i].to + ' [label='+label;
         graph += transition+' fontname=tahoma]\n';
@@ -154,11 +153,7 @@ function getBlock(name){
 }
 
 function editBlocks(toMerge){
-    console.log('toMerge2 = ',toMerge);
-    console.log('blocks = ',blocks);
-
     let toKeep = getBlock(toMerge[0]);
-    console.log('toKeep = ',toKeep);
     let labels = getBlockLabel(toKeep.name) + '\n';
     let i;
     for(i=1; i<toMerge.length; i++){
@@ -168,7 +163,6 @@ function editBlocks(toMerge){
     let newBlocks = [];
     for(i=0; i<blocks.length; i++){
         if(toMerge.indexOf(blocks[i].name) > -1){
-            console.log('blocks[i] = ', blocks[i]);
             if(blocks[i].name === toKeep.name) {
                 blocks[i].str = labels;
                 newBlocks.push(blocks[i]);}
@@ -203,7 +197,6 @@ function performMerge(toMerge, transitionsToRemove){
     if(toMerge.length > 0){
         toMerge = toMerge.filter((v,i) => toMerge.indexOf(v) === i);
         removeNodes(toMerge.filter((v) => toMerge.indexOf(v) > 0));
-        console.log('toMerge1 = ',toMerge);
         let newFrom = editBlocks(toMerge);
         removeTransitions(transitionsToRemove);
         createTransitionsFromLast(toMerge[toMerge.length-1], newFrom);
@@ -368,8 +361,7 @@ function createFlowChart(functionBody){
     const graph = esgraph.dot(esgraph(functionBody), { counter: 0});
     for(let i=1; i<cfg.length-1; i++){
         let block = {name: 'n'+i, type: cfg[i].astNode.type, str: findStringRepresentation(cfg[i].astNode), color: cfg[i].astNode.color};
-        blocks.push(block);
-    }
+        blocks.push(block);}
     let blocksAndTrans = editTags(graph);
     blocksAndTrans = removeStartAndEnd(blocksAndTrans, blocks.length+1);
     for(let i=0; i<blocks.length; i++)

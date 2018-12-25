@@ -3,17 +3,11 @@ import * as ast_handler from '../src/js/ast-handler';
 import * as bl from '../src/js/find-path';
 import {testFunction} from '../src/js/find-path';
 import {parseCode} from '../src/js/code-analyzer';
-import {evalCondition} from '../src/js/eval';
 
 
 function before(){
     bl.restartFindPath();
     ast_handler.restartExpressions();
-    // let parsedCode = parseCode(code).body;
-    // ast_handler.getValues(parsedCode);
-    // let expressions = ast_handler.getExpressions();
-    // let params = bl.createParamVector(inputParams);
-    // bl.iterateCode(expressions, params, parsedCode);
 }
 function before2(){
     before();
@@ -305,6 +299,25 @@ describe('Iterate structures', () => {
         let expected = {type: 'IfStatement', test: expectedBinaryExp, consequent: expectedBlockStmt, alternate:null};
         compareExpectedToOutput(expected, actual);
     });
+    it('IfStatement no alternate2', () => {
+        before2();
+        let binaryExp = {type: 'BinaryExpression', operator: '<', left:x_id, right:y_id};
+        let returnStmt = {type: 'ReturnStatement', argument: x_id};
+        let expressionStatement  = {type: 'ExpressionStatement', expression: returnStmt};
+        let blockStmt = {type: 'BlockStatement', body:[expressionStatement]};
+
+        let ex = {type: 'IfStatement', test: binaryExp, consequent: blockStmt, alternate:null};
+        let actual = testFunction('iterateIfStatement', [ex, 0, 'green']);
+
+        let expectedBinaryExp = {type: 'BinaryExpression', operator: '<', left:x_id, right:y_id, color:'green'};
+        let expectedReturnStmt = {type: 'ReturnStatement', argument: x_id, color:'green'};
+        let expectedExpressionStatement  = {type: 'ExpressionStatement', expression: expectedReturnStmt, color:'green'};
+        let expectedBlockStmt = {type: 'BlockStatement', body:[expectedExpressionStatement]};
+
+
+        let expected = {type: 'IfStatement', test: expectedBinaryExp, consequent: expectedBlockStmt, alternate:null};
+        compareExpectedToOutput(expected, actual);
+    });
     it('IfStatement with alternate', () => {
         before2();
         let binaryExp = {type: 'BinaryExpression', operator: '>', left:x_id, right:y_id};
@@ -354,7 +367,14 @@ describe('Iterate structures', () => {
         let actual = testFunction('iterateArrayExpression', [ex, 0, 'green']);
         compareExpectedToOutput({type: 'ArrayExpression', elements: [x_id], color:'green'}, actual);
     });
+    it('UpdateExpression', () => {
+        before();
+        let ex = {type: 'UpdateExpression', argument: x_id};
+        let actual = testFunction('iterateUpdateExpression', [ex, 0, 'green']);
+        compareExpectedToOutput({type: 'UpdateExpression', argument: x_id, color:'green'}, actual);
+    });
 });
+
 
 
 describe('getOppositeColor', () => {

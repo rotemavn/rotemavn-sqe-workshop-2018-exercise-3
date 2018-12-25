@@ -7,7 +7,69 @@ const Viz = require('viz.js');
 let transitions = [];
 let nodes = [];
 let blocks = [];
-let i;
+
+
+let classFunctions = {
+    'getBlockLabel':getBlockLabel,
+    'removeStartAndEnd':removeStartAndEnd,
+    'concatToGraph': concatToGraph,
+    'getNodeType': getNodeType,
+    'removeNodes': removeNodes,
+    'getBlock': getBlock,
+    'editBlocks': editBlocks,
+    'createTransitionsFromLast': createTransitionsFromLast,
+    'checkIfTwoNodesCanBeMerged': checkIfTwoNodesCanBeMerged,
+    'performMerge': performMerge,
+    'mergeNodesWithAssignmentOrDecl': mergeNodesWithAssignmentOrDecl,
+    'editTags': editTags,
+    'addProperties': addProperties,
+    'addNodeAndTransitions': addNodeAndTransitions,
+    'findNewNodeIndex': findNewNodeIndex,
+    'addMergePoints': addMergePoints,
+    'addNodes': addNodes,
+    'transitionsEquals': transitionsEquals,
+    'removeTransitions': removeTransitions,
+    'addTransitions': addTransitions,
+    'setTransitionsFromBlocksAndTrans': setTransitionsFromBlocksAndTrans,
+    'createFlowChart': createFlowChart
+
+};
+
+let getterAndSetters = {
+    'getTransitions': getTransitions,
+    'setTransitions': setTransitions,
+    'getNodes': getNodes,
+    'setNodes': setNodes,
+    'getBlocks': getBlocks,
+    'setBlocks': setBlocks
+};
+
+function getOrSet(functionName, params){
+    return getterAndSetters[functionName].apply(null, params);
+}
+
+function getTransitions(){
+    return transitions;
+}
+function setTransitions(trans){
+    transitions = trans;
+}
+function getNodes(){
+    return nodes;
+}
+function setNodes(nodesToSet){
+    nodes = nodesToSet;
+}
+function getBlocks(){
+    return blocks;
+}
+function setBlocks(blocksToSet){
+    blocks = blocksToSet;
+}
+
+function testFunction(functionName, params){
+    return classFunctions[functionName].apply(null, params);
+}
 
 
 function restartGraphCreation(){
@@ -16,8 +78,10 @@ function restartGraphCreation(){
     blocks = [];
 }
 
+////////////////////////////////////////////
 
 function getBlockLabel(name){
+    let i;
     for(i=0; i<blocks.length; i++){
         if(blocks[i].name === name)
             return blocks[i].str;
@@ -28,7 +92,7 @@ function getBlockLabel(name){
 function removeStartAndEnd(blocksAndTrans, numOfBlocks){
     let start = blocksAndTrans[0].split('[')[0];
     let end = blocksAndTrans[numOfBlocks].split('[')[0];
-    let ret = [];
+    let ret = [], i;
 
     for(i=1; i<blocksAndTrans.length; i++){
         if(!blocksAndTrans[i].includes(start) && !blocksAndTrans[i].includes(end)){
@@ -40,7 +104,7 @@ function removeStartAndEnd(blocksAndTrans, numOfBlocks){
 }
 
 function concatToGraph(){
-    let graph = '';
+    let graph = '', i;
     for(i=0; i<nodes.length; i++){
         graph += nodes[i]+' fontname=tahoma]\n';
     }
@@ -56,6 +120,7 @@ function concatToGraph(){
 
 
 function getNodeType(name){
+    let i;
     for(i=0; i<blocks.length; i++){
         if(blocks[i].name === name)
             return blocks[i].type;
@@ -65,7 +130,7 @@ function getNodeType(name){
 
 function removeNodes(toRemove){
     let changed = [];
-    let j;
+    let j, i;
     for(i=0; i<nodes.length; i++){
         let flag = false;
         for(j=0; j<toRemove.length; j++){
@@ -80,6 +145,7 @@ function removeNodes(toRemove){
 }
 
 function getBlock(name){
+    let i;
     for(i=0; i<blocks.length; i++){
         if(blocks[i].name === name)
             return blocks[i];
@@ -88,8 +154,13 @@ function getBlock(name){
 }
 
 function editBlocks(toMerge){
+    console.log('toMerge2 = ',toMerge);
+    console.log('blocks = ',blocks);
+
     let toKeep = getBlock(toMerge[0]);
+    console.log('toKeep = ',toKeep);
     let labels = getBlockLabel(toKeep.name) + '\n';
+    let i;
     for(i=1; i<toMerge.length; i++){
         labels += getBlockLabel(toMerge[i]) + '\n';
     }
@@ -97,6 +168,7 @@ function editBlocks(toMerge){
     let newBlocks = [];
     for(i=0; i<blocks.length; i++){
         if(toMerge.indexOf(blocks[i].name) > -1){
+            console.log('blocks[i] = ', blocks[i]);
             if(blocks[i].name === toKeep.name) {
                 blocks[i].str = labels;
                 newBlocks.push(blocks[i]);}
@@ -108,6 +180,7 @@ function editBlocks(toMerge){
 }
 
 function createTransitionsFromLast(last, from){
+    let i;
     for(i=0; i<transitions.length; i++){
         if(transitions[i].from === last){
             transitions[i].from = from;
@@ -117,7 +190,7 @@ function createTransitionsFromLast(last, from){
 }
 
 function checkIfTwoNodesCanBeMerged(node1, node2){
-    let okTypes = ['AssignmentExpression', 'VariableDeclaration', 'VariableDeclarator'];
+    let okTypes = ['AssignmentExpression', 'VariableDeclaration', 'VariableDeclarator', 'UpdateExpression'];
     let type1 = getNodeType(node1);
     let type2 = getNodeType(node2);
     let index1 = okTypes.indexOf(type1);
@@ -130,6 +203,7 @@ function performMerge(toMerge, transitionsToRemove){
     if(toMerge.length > 0){
         toMerge = toMerge.filter((v,i) => toMerge.indexOf(v) === i);
         removeNodes(toMerge.filter((v) => toMerge.indexOf(v) > 0));
+        console.log('toMerge1 = ',toMerge);
         let newFrom = editBlocks(toMerge);
         removeTransitions(transitionsToRemove);
         createTransitionsFromLast(toMerge[toMerge.length-1], newFrom);
@@ -178,6 +252,7 @@ function editTags(graph){
 }
 
 function addProperties(){
+    let i;
     for(i=0; i<blocks.length; i++){
         let label = blocks[i].str;
         let color = blocks[i].color;
@@ -185,7 +260,7 @@ function addProperties(){
             nodes[i] += '[label="'+ label + '" color='+color+' style=filled  shape=oval';
         }
         else {
-            nodes[i] += '[label="' + (i + 1) + '\n' + label + '" color=' + color + ' style=filled';
+            nodes[i] += '[label="((' + (i + 1) + '))\n' + label + '" color=' + color + ' style=filled';
             if (blocks[i].type === 'BinaryExpression') {
                 nodes[i] += ' shape=diamond';
             } else {
@@ -223,7 +298,7 @@ function findNewNodeIndex(){
 }
 
 function addMergePoints(){
-    let toArray = {};
+    let toArray = {}, i;
     for(i=0; i<transitions.length; i++){
         let fromNode = transitions[i].from;
         let toNode = transitions[i].to;
@@ -241,6 +316,7 @@ function addMergePoints(){
 
 
 function addNodes(toAdd){
+    let i;
     for(i=0; i<toAdd.length; i++){
         nodes.push(toAdd[i]);
     }
@@ -252,7 +328,7 @@ function transitionsEquals(t1, t2){
 
 function removeTransitions(toRemove){
     let changed = [];
-    let j;
+    let j, i;
     for(i=0; i<transitions.length; i++){
         let flag = false;
         for(j=0; j<toRemove.length; j++){
@@ -268,6 +344,7 @@ function removeTransitions(toRemove){
 }
 
 function addTransitions(toAdd){
+    let i;
     for(i=0; i<toAdd.length; i++){
         transitions.push(toAdd[i]);
     }
@@ -275,7 +352,8 @@ function addTransitions(toAdd){
 
 }
 
-function setTransitions(startIndex, blocksAndTrans){
+function setTransitionsFromBlocksAndTrans(startIndex, blocksAndTrans){
+    let i;
     for(i=startIndex; i<blocksAndTrans.length; i++){
         let splitted = blocksAndTrans[i].split(' -> ');
         let from = splitted[0];
@@ -288,24 +366,25 @@ function setTransitions(startIndex, blocksAndTrans){
 function createFlowChart(functionBody){
     const cfg = esgraph(functionBody)[2];
     const graph = esgraph.dot(esgraph(functionBody), { counter: 0});
-    for(i=1; i<cfg.length-1; i++){
+    for(let i=1; i<cfg.length-1; i++){
         let block = {name: 'n'+i, type: cfg[i].astNode.type, str: findStringRepresentation(cfg[i].astNode), color: cfg[i].astNode.color};
         blocks.push(block);
     }
     let blocksAndTrans = editTags(graph);
     blocksAndTrans = removeStartAndEnd(blocksAndTrans, blocks.length+1);
-    for(i=0; i<blocks.length; i++)
+    for(let i=0; i<blocks.length; i++)
         nodes.push(blocksAndTrans[i]);
-    setTransitions(blocks.length, blocksAndTrans);
+    setTransitionsFromBlocksAndTrans(blocks.length, blocksAndTrans);
     mergeNodesWithAssignmentOrDecl();
     let changes= addMergePoints();
     addNodes(changes.nodes);
     removeTransitions(changes.toRemove);
     addTransitions(changes.transitions);
     addProperties();
-    return Viz('digraph {' + concatToGraph() + '}');
+    return concatToGraph();
+
 }
 
 
-export {createFlowChart, restartGraphCreation};
+export {createFlowChart, restartGraphCreation, testFunction, getOrSet};
 

@@ -30,8 +30,9 @@ let classFunctions = {
     'iterateBlockStatement': iterateBlockStatement,
     'iterateMemberExpression': iterateMemberExpression,
     'iterateArrayExpression': iterateArrayExpression,
-    'getOppositeColor': getOppositeColor,
+    'iterateUpdateExpression': iterateUpdateExpression,
     'iterateCode': getResFuncBody,
+    'getOppositeColor': getOppositeColor,
     'getScopes': getScopes,
     'resetScope': resetScope,
 
@@ -152,6 +153,7 @@ let iterateExpressionsFunctions = {
     'BlockStatement': iterateBlockStatement,
     'MemberExpression': iterateMemberExpression,
     'ArrayExpression': iterateArrayExpression,
+    'UpdateExpression': iterateUpdateExpression,
 };
 
 
@@ -284,6 +286,13 @@ function iterateArrayExpression(ex, scopeNum, color){
     for(i=0; i<elements.length; i++){
         iterateExpressionsFunctions[elements[i].type](elements[i], scopeNum, color);
     }
+    return res;
+}
+
+function iterateUpdateExpression(ex, scopeNum, color){
+    let res =  JSON.parse(JSON.stringify(ex));
+    iterateExpressionsFunctions[ex.argument.type](ex.argument, scopeNum, color);
+    res.color = color;
     return res;
 }
 

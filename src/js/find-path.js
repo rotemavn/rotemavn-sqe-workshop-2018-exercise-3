@@ -25,33 +25,6 @@ function varValuesSet(name, value, scope){
     scopes[scope].push(newVar);
 }
 
-function varValuesGet(ex, scope){
-    var i, j;
-    var name = findStringRepresentation(ex);
-    for(j=scope; j>=0; j--) {
-        var values = scopes[j];
-        if(values === undefined)
-            continue;
-        for (i = 0; i < values.length; i++) {
-            if (values[i].name === name)
-                return values[i].value;
-        }
-    }
-    // return null;
-
-}
-
-function inputVectorGet(ex){
-    var i;
-    var name = findStringRepresentation(ex);
-    for(i=0; i<inputVector.length; i++) {
-        if(inputVector[i].name === name)
-            return inputVector[i].value;
-    }
-    return null;
-
-}
-
 
 function createParamVector(inputP){
     var parsedParams = parseCode(inputP);
@@ -278,14 +251,16 @@ function iterateVariableDeclarator(ex, scopeNum, color){
 
 function iterateWhileStatement(ex, scopeNum, color){
     var res =  JSON.parse(JSON.stringify(ex));
+
+    var condition_color = evalCondition(res.test, inputVector, scopes, scopeNum);
     res.test = iterateExpressionsFunctions[ex.test.type](ex.test, scopeNum, color);
     res.test.color = color;
     res.body.body = [];
     var i, body = ex.body.body;
     var scope = scopeNum + 1;
     for(i=0; i<body.length; i++){
-        iterateExpressionsFunctions[body[i].type](body[i], scope, color);
-        res.body.body.push(body[i]);
+        var b = iterateExpressionsFunctions[body[i].type](body[i], scope, condition_color);
+        res.body.body.push(b);
     }
     resetScope(scope);
     return res;

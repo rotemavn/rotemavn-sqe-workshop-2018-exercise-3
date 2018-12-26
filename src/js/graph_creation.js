@@ -109,7 +109,7 @@ function concatToGraph(){
     }
     for(i=0; i<transitions.length; i++){
         let label = transitions[i].label;
-        if(label === '')
+        if(label === '' || label === undefined)
             label = '""';
         let transition = transitions[i].from + ' -> ' + transitions[i].to + ' [label='+label;
         graph += transition+' fontname=tahoma]\n';

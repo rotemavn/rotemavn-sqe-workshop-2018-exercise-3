@@ -9,6 +9,9 @@ function varValuesGet(ex){
     var name = findStringRepresentation(ex);
     for(j=scopeNum; j>=0; j--) {
         var values = scopes[j];
+        if(values === undefined){
+            continue;
+        }
         for (i = 0; i < values.length; i++) {
             if (values[i].name === name)
                 return values[i].value;

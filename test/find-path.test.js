@@ -18,6 +18,18 @@ function before2(){
     testFunction('createNewInitVar', [v, []]);
 }
 
+function before4(){
+    before();
+    let v = {name: 'x', valueObj: lit_1, type: 'Identifier'};
+    testFunction('createNewInitVar', [v, []]);
+    let valueObj = {type: 'Literal', value: 2};
+    v = {name: 'y', valueObj: valueObj, type: 'Identifier'};
+    testFunction('createNewInitVar', [v, []]);
+    valueObj = {type: 'Literal', value: 3};
+    v = {name: 'z', valueObj: valueObj, type: 'Identifier'};
+    testFunction('createNewInitVar', [v, []]);
+}
+
 function before3(code, inputParams){
     bl.restartFindPath();
     ast_handler.restartExpressions();
@@ -31,6 +43,7 @@ function before3(code, inputParams){
 const nonRelevantKeys = ['range', 'loc', '0', '1', 'line', 'start', 'end', 'col', 'color', 'raw'];
 const x_id = {type: 'Identifier', name: 'x'};
 const y_id = {type: 'Identifier', name: 'y'};
+const z_id = {type: 'Identifier', name: 'z'};
 const lit_1 = {type: 'Literal', value: 1};
 
 function compareObjectsNotArray(expected, actual, key){
@@ -336,6 +349,38 @@ describe('Iterate structures', () => {
 
 
         let expected = {type: 'IfStatement', test: expectedBinaryExp, consequent: expectedBlockStmt1, alternate:expectedBlockStmt2};
+        compareExpectedToOutput(expected, actual);
+    });
+    it('IfStatement inner if', () => {
+        before4();
+        let binaryExp1 = {type: 'BinaryExpression', operator: '>', left:x_id, right:y_id};
+        let binaryExp2 = {type: 'BinaryExpression', operator: '>', left:x_id, right:z_id};
+        let returnStmt1 = {type: 'ReturnStatement', argument: x_id};
+        let returnStmt2 = {type: 'ReturnStatement', argument: y_id};
+        let expressionStatement1  = {type: 'ExpressionStatement', expression: returnStmt1};
+        let blockStmt1 = {type: 'BlockStatement', body:[expressionStatement1]};
+        let expressionStatement2  = {type: 'ExpressionStatement', expression: returnStmt2};
+        let blockStmt2 = {type: 'BlockStatement', body:[expressionStatement2]};
+
+        let if1 = {type: 'IfStatement', test: binaryExp2, consequent: blockStmt1, alternate:null};
+        let blockStmt11 = {type: 'BlockStatement', body:[if1]};
+        let ex = {type: 'IfStatement', test: binaryExp1, consequent: blockStmt11, alternate:blockStmt2};
+        let actual = testFunction('iterateIfStatement', [ex, 0, 'green']);
+        let expectedBinaryExp1 = {type: 'BinaryExpression', operator: '>', left:x_id, right:y_id, color:'green'};
+        let expectedBinaryExp2 = {type: 'BinaryExpression', operator: '>', left:x_id, right:z_id, color:'grey'};
+        let expectedReturnStmt1 = {type: 'ReturnStatement', argument: x_id, color:'grey'};
+        let expectedReturnStmt2 = {type: 'ReturnStatement', argument: y_id, color:'green'};
+
+        let expectedExpressionStatement1  = {type: 'ExpressionStatement', expression: expectedReturnStmt1, color:'grey'};
+        let expectedBlockStmt1 = {type: 'BlockStatement', body:[expectedExpressionStatement1]};
+
+
+        let expectedExpressionStatement2  = {type: 'ExpressionStatement', expression: expectedReturnStmt2, color:'green'};
+        let expectedBlockStmt2 = {type: 'BlockStatement', body:[expectedExpressionStatement2]};
+        let if1Expected = {type: 'IfStatement', test: expectedBinaryExp2, consequent: expectedBlockStmt1, alternate:null};
+        let blockStmt11Expected = {type: 'BlockStatement', body:[if1Expected]};
+        let expected = {type: 'IfStatement', test: expectedBinaryExp1, consequent: blockStmt11Expected, alternate:expectedBlockStmt2};
+
         compareExpectedToOutput(expected, actual);
     });
     it('BlockStatement', () => {
